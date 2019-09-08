@@ -28,9 +28,9 @@ let mut z = 0;
 
    }
 
-   for i in 1..5 {
+   //for i in 1..5 {
 
-   }
+//   }
 
 unsafe {
       t2 =__rdtscp(&mut aux);
