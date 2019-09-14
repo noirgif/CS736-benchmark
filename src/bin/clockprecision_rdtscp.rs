@@ -20,21 +20,16 @@ let mut z = 0;
    println!("{} {}", m, z);
 
    let mut aux : u32 = 0;
-   let mut t1 = 0u64;
-   let mut t2 = 0u64;
+   let t1 : u64;
+   let t2 : u64;
 
-   unsafe {
-      t1 =  __rdtscp(&mut aux);
-
-   }
+   t1 = unsafe { __rdtscp(&mut aux)};
 
    //for i in 1..5 {
 
 //   }
 
-unsafe {
-      t2 =__rdtscp(&mut aux);
-   }
+t2 = unsafe { __rdtscp(&mut aux) };
 println!("diff = {}", t2-t1);
 
 

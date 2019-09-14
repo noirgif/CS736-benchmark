@@ -4,7 +4,7 @@ extern crate core;
 use core::arch::x86_64::__rdtscp;
 
 fn main() {
-    //pub unsafe extern fn getpid() -> pid_t
+    //pub unsafe extern fn getuid() -> pid_t
 
    let real_clock = libc::CLOCK_REALTIME;
     let mut start = libc::timespec {
@@ -17,7 +17,9 @@ fn main() {
     };
     unsafe {
         libc::clock_gettime(real_clock, &mut start);
-        libc::getpid();
+        for i in 0..1000 {
+            libc::getuid();
+        }
         libc::clock_gettime(real_clock, &mut end);
     }  
     
@@ -27,17 +29,19 @@ fn main() {
     println!("Duration = {}ns", (end_dur - start_dur).as_nanos());
 
     unsafe {
-        println!("{}", libc::getpid());
+        println!("{}", libc::getuid());
         //println!("{}", libc::gettimeofday()");
     }
 
       let mut aux : u32 = 0;
-        let mut t1 = 0u64;
-        let mut t2 = 0u64;
+        let t1 : u64;
+        let t2 : u64;
 
      unsafe { 
         t1 =  __rdtscp(&mut aux);
-        libc::getpid();
+        //for i in 0..1000 {
+        libc::getuid();
+        //} 
         t2 =  __rdtscp(&mut aux);
     }
     println!("rdtscp diff = {}ns", (t2-t1)/2);
