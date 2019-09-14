@@ -51,10 +51,11 @@ macro_rules! gettime {
                 libc::clock_gettime(CLOCK_REALTIME, &mut end);
             }
 
-            let time = (end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec);
+            let time = ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec)) as u64;
             if time < min
-                min = time;
+            {    min = time;}
         }
+        min
     })
 }
 

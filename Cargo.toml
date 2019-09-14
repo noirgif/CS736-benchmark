@@ -18,5 +18,5 @@ name = "kernelcall"
 path = "src/kernelcall.rs"
 
 [[bin]]
-name = "throughput.rs"
+name = "throughput"
 path = "src/throughput.rs"
