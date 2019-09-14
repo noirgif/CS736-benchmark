@@ -8,3 +8,15 @@ edition = "2018"
 
 [dependencies]
 libc = "*"
+
+[[bin]]
+name = "latency"
+path = "src/latency.rs"
+
+[[bin]]
+name = "kernelcall"
+path = "src/kernelcall.rs"
+
+[[bin]]
+name = "throughput.rs"
+path = "src/throughput.rs"
