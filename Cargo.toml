@@ -20,3 +20,14 @@ path = "src/kernelcall.rs"
 [[bin]]
 name = "throughput"
 path = "src/throughput.rs"
+
+[[bin]]
+name ="tic"
+path ="src/tcpip/client.rs"
+
+[[bin]]
+name ="tis"
+path ="src/tcpip/server.rs"
+
+
+
