@@ -41,7 +41,7 @@ macro_rules! gettime {
 
         let mut min = -1i32 as u64;
 
-        for i in 1..($rep)
+        for _i in 0..($rep)
         {
             unsafe {
                 libc::clock_gettime(CLOCK_REALTIME, &mut start);

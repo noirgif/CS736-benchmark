@@ -2,6 +2,6 @@
 mod measure;
 
 fn main() {
-    let a = gettime!({}, 10000);
+    let a = rdtscp!({}, 100000);
     println!("{}", a);
 }

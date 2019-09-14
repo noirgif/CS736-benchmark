@@ -30,4 +30,6 @@ name ="tis"
 path ="src/tcpip/server.rs"
 
 
-
+[[bin]]
+name = "measure_pipe"
+path = "src/pipe.rs"
