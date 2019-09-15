@@ -2,11 +2,15 @@
 #![allow(unused_imports)]
 
 use libc::{pipe, fork, c_int, c_void, read, write, kill, SIGKILL};
+use std::fs::File;
+use std::io::prelude::*;
 
 #[macro_use]
 mod measure;
 
-fn measure_latency() {
+fn measure_latency() -> std::io::Result<()> {
+    let mut f = File::create("pipe_latency")?;
+
     let pipe1 = &mut [0 as c_int, 0 as c_int];
     let pipe2 = &mut [0 as c_int, 0 as c_int];
 
@@ -14,8 +18,8 @@ fn measure_latency() {
         panic!("Error creating pipe");
     }
 
-    // maximum message size: 512MiB
-    const MAX_MSG: usize = 1 << 29;
+    // maximum message size: 1024MiB
+    const MAX_MSG: usize = 1 << 30;
 
     for msg_size in [4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288].iter() {
         let lat : u64;
@@ -47,12 +51,15 @@ fn measure_latency() {
             }
         }
 
-        println!("Size: {}, latency: {}ns", msg_size, lat as f64 / 2.);
+        write!(f, "{} {}\n", msg_size, lat as f64 / 2.)?;
     }
+    Ok(())
 }
 
 
-fn measure_throughput() {
+fn measure_throughput() -> std::io::Result<()> {
+    let mut f = File::create("pipe_throughput")?;
+
     let pipe1 = &mut [0 as c_int, 0 as c_int];
     let pipe2 = &mut [0 as c_int, 0 as c_int];
 
@@ -93,10 +100,13 @@ fn measure_throughput() {
             }
         }
     }
-    println!("Pipe throughput: {}B/sec", MAX_MSG as f64 / time);
+    write!(f, "{}\n", MAX_MSG as f64 / time)?;
+
+    Ok(())
 }
 
-fn main() {
-    measure_latency();
-    measure_throughput();
+fn main() -> std::io::Result<()> {
+    measure_latency()?;
+    measure_throughput()?;
+    Ok(())
 }
