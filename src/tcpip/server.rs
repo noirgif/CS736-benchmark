@@ -18,8 +18,8 @@ fn measure_latency(mut _socket: TcpStream) {
     let lat : u64;
   
     lat = rdtscp!({
-        _socket.write(&out_buf[0..msg_size]);        
-        _socket.read(&mut in_buf);
+        _socket.write_all(&out_buf[0..msg_size]);        
+        _socket.read_exact(&mut in_buf[0..msg_size]);
     }, 100);
 
     //println!("{:?}", buffer);

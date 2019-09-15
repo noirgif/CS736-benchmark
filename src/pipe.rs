@@ -34,7 +34,7 @@ fn measure_latency() -> std::io::Result<()> {
                     write(pipe1[1], " ".as_ptr() as *const c_void, *msg_size);
                     read(pipe2[0], buf.as_mut_ptr() as *mut c_void, *msg_size);
                 }
-            ), 100000);
+            ), 100);
             
             // because the child process is in an infinite loop, simply kill it.
             unsafe {

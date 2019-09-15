@@ -14,14 +14,11 @@ fn main() -> std::io::Result<()> {
     const num_repeat : usize = 100;
 
     for _i in 0..(10 * num_repeat) {
-        let mut n = 0;
+        // let mut n = 0;
         let read_size = sizes[_i / num_repeat];
-        while (n < read_size)
-        {
-            n += stream.read(&mut in_buf[n..read_size])?;
-        }
-        stream.write(&out_buf[0..n]);
-        println!("{ }", n);
+        stream.read_exact(&mut in_buf[0..read_size])?;
+        stream.write_all(&out_buf[0..read_size]);
+        // println!("{ }", n);
         println!("{}", stream.nodelay().unwrap());
     }
     Ok(())
