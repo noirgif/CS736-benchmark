@@ -10,7 +10,7 @@ mod measure;
 
 
 
-fn measure_latency(mut _socket: TcpStream) {
+fn measure_latency(mut _socket: TcpStream)  {
     let mut in_buf =    [1u8; 1 << 19];
     let mut out_buf =   [1u8; 1 << 19];
 
@@ -24,24 +24,38 @@ fn measure_latency(mut _socket: TcpStream) {
 
     //println!("{:?}", buffer);
     println!("{} = {}",msg_size, lat as f32/2.0);
-    println!("{}", _socket.nodelay().unwrap());
+    //println!("{}", _socket.nodelay().unwrap());
  }
- 
-}
-
-fn measure_throughput() {
 
 }
 
-fn main(){
-    let mut listener = TcpListener::bind("127.0.0.1:8080").unwrap();
+fn measure_throughput(mut _socket: TcpStream) -> std::io::Result<()> {
+    const MAX_MSG: usize = 1 << 20;
+
+    let mut in_buf =    [1u8; 1];
+    let out_buf : [u8; MAX_MSG] =    [1u8; MAX_MSG];
+
+    // send some MiB data
+    // read back 1 byte
+     let lat: u64 = rdtscp!({
+        _socket.write(&out_buf);        
+        _socket.read(&mut in_buf);
+    }, 100);
+
+    println!("throughput = {} bytes per {} cyles", MAX_MSG, lat as f32/MAX_MSG as f32);
+    Ok(())
+}
+
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
     match listener.accept() {
         Ok((mut _socket, addr)) => {
                _socket.set_nodelay(true);
-               measure_latency(_socket);
+               measure_throughput(_socket);
             },
         Err(e) => println!("couldn't get client: {:?}", e),
     }
+
 }
 
 
