@@ -8,6 +8,7 @@ use std::io::prelude::*;
 #[macro_use]
 mod measure;
 
+
 fn measure_latency() -> std::io::Result<()> {
     let mut f = File::create("pipe_latency")?;
 
@@ -21,6 +22,9 @@ fn measure_latency() -> std::io::Result<()> {
     // maximum message size: 1024MiB
     const MAX_MSG: usize = 1 << 30;
 
+    // times to loop
+    const LOOP_NUM: usize = 10000;
+
     for msg_size in [4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288].iter() {
         let lat : u64;
 
@@ -32,17 +36,19 @@ fn measure_latency() -> std::io::Result<()> {
             lat = gettime!((
                 unsafe {
                     write(pipe1[1], " ".as_ptr() as *const c_void, *msg_size);
+                    pipe1[1].flush();
                     read(pipe2[0], buf.as_mut_ptr() as *mut c_void, *msg_size);
                 }
-            ), 100000);
+            ), LOOP_NUM);
             
             // because the child process is in an infinite loop, simply kill it.
             unsafe {
                 kill(pid, SIGKILL);
             }
+            write!(f, "{} {}\n", msg_size, lat as f64 / 2.)?;
         }
         else {
-            loop {
+            for _i in 0..LOOP_NUM {
                 // child process
                 unsafe {
                     read(pipe1[0], buf.as_mut_ptr() as *mut c_void, *msg_size);
@@ -50,8 +56,6 @@ fn measure_latency() -> std::io::Result<()> {
                 }
             }
         }
-
-        write!(f, "{} {}\n", msg_size, lat as f64 / 2.)?;
     }
     Ok(())
 }
