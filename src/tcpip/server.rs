@@ -30,7 +30,7 @@ fn measure_latency(mut _socket: TcpStream)  {
 }
 
 fn measure_throughput(mut _socket: TcpStream) -> std::io::Result<()> {
-    const MAX_MSG: usize = 1 << 27;
+    const MAX_MSG: usize = 1 << 26;
 
     let mut in_buf = [1u8; 1];
     let out_buf = vec![1u8; MAX_MSG];
@@ -38,11 +38,11 @@ fn measure_throughput(mut _socket: TcpStream) -> std::io::Result<()> {
     // send some MiB data
     // read back 1 byte
      let lat: u64 = rdtscp!({
-        _socket.write(&out_buf);        
-        _socket.read(&mut in_buf);
+        _socket.write_all(&out_buf);        
+        _socket.read_exact(&mut in_buf);
     }, 100);
 
-    println!("throughput = {} bytes per {} cyles", MAX_MSG, lat as f32/MAX_MSG as f32);
+    println!("throughput = {} M bytes per {} cycles", MAX_MSG/(1024*1024), lat);
     Ok(())
 }
 

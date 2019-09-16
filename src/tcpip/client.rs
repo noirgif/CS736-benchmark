@@ -22,19 +22,20 @@ fn measure_latency (mut stream: TcpStream) {
 
 fn measure_throughput (mut stream: TcpStream){
     // let mut array: [i32; 3] = [0; 3];
-    const MAX_MSG: usize = 1 << 27;
+    const MAX_MSG: usize = 1 << 26;
     
     let mut in_buf = vec![1u8; MAX_MSG];
     let out_buf =   [1u8; 1];
 
     const MAX_REPEAT: u32 = 100;
-
+    println!("\nBefore");
     for _i in 0..MAX_REPEAT {
-        stream.read(&mut in_buf);
-        stream.write(&out_buf);
+        println!("Try read:\n");
+        stream.read_exact(&mut in_buf);
+        println!("Try write:\n");
+        stream.write_all(&out_buf);
     }
-
-
+    println!("\nAfter");
 }
 
 fn main() -> std::io::Result<()>{

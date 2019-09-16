@@ -31,5 +31,14 @@ path ="src/tcpip/server.rs"
 
 
 [[bin]]
+name ="uc"
+path ="src/udp/client.rs"
+
+[[bin]]
+name ="us"
+path ="src/udp/server.rs"
+
+
+[[bin]]
 name = "measure_pipe"
 path = "src/pipe.rs"
