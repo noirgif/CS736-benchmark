@@ -20,8 +20,29 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     for _i in 0..10 {
         let msg_size = sizes[_i];
         for _j in 0..NUM_REPEAT {
-            //println!("...Trying to send: {} bytes", msg_size);
+            // client first receives then sends
 
+            let mut net_received = 0;
+            while net_received < msg_size {
+                println!("Waiting to receive: {}", msg_size - net_received);
+                match _socket.recv(&mut in_buf[0..msg_size]) {
+                    Ok(received) => {
+                        println!("received {} bytes of {}", received, msg_size);
+                        net_received += received;
+                        println!(
+                            "net_received = {}, cond = {}",
+                            net_received,
+                            net_received < msg_size
+                        );
+                    }
+                    Err(e) => {
+                        println!("recv function failed: {:?}", e);
+                        break;
+                    }
+                }
+            }
+
+            println!("...Trying to send: {} bytes", msg_size);
             if msg_size > MTU {
                 let mut remaining = msg_size;
                 let mut size = MTU;
@@ -29,10 +50,10 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                 while size > 0 {
                     match _socket.send(&out_buf[0..size]) {
                         Ok(n) => {
-                            //println!("Multi::Sent {} bytes", n);
+                            println!("Multi::Sent {} bytes", n);
                         }
                         Err(e) => {
-                            //println!("error: {:?}", e);
+                            println!("send error: {:?}", e);
                             break;
                         }
                     }
@@ -48,21 +69,6 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                     }
                 }
             };
-
-            let mut net_received = 0;
-            while net_received < msg_size {
-                println!("Waiting to receive: {}", msg_size - net_received);
-                match _socket.recv(&mut in_buf[0..msg_size]) {
-                    Ok(received) => {
-                        //println!("received {} bytes", received);
-                        net_received += received;
-                    }
-                    Err(e) => {
-                        //println!("recv function failed: {:?}", e);
-                        break;
-                    }
-                }
-            }
         }
     }
     Ok(())
@@ -89,11 +95,29 @@ fn main() -> std::io::Result<()> {
         .expect("connect function failed");
 
     // initial handshake
-    socket.set_read_timeout(Some(Duration::new(5,0)))?;
-    socket.set_write_timeout(Some(Duration::new(5,0)))?;
-    socket.recv(&mut [1])?;
+    socket.set_read_timeout(Some(Duration::new(10, 0)))?;
+    socket.set_write_timeout(Some(Duration::new(10, 0)))?;
+    println!("init handshake...");
+    match socket.recv(&mut [1]) {
+        Ok(n) => {
+            println!("HS:: recv :: {} bytes", n);
+        }
+        Err(e) => {
+            println!("HS recv err: {:?}", e);
+        }
+    }
+    match socket.send(&mut [1]) {
+        Ok(n) => {
+            println!("HS:: send:: {} bytes", n);
+        }
+        Err(e) => {
+            println!("HS send err: {:?}", e);
+        }
+    }
 
-    const TIMEOUT : Duration = Duration::from_millis(100);
+    println!("\nEnd Shake...\n");
+
+    const TIMEOUT: Duration = Duration::from_millis(10000);
     socket.set_read_timeout(Some(TIMEOUT))?;
     socket.set_write_timeout(Some(TIMEOUT))?;
 
