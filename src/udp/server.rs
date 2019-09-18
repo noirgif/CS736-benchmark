@@ -1,35 +1,83 @@
-
 #![allow(unused_imports)]
-use std::net::TcpListener;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::UdpSocket;
 
-
 #[macro_use]
 mod measure;
 
-fn measure_latency(mut _socket: UdpSocket)  {
-    let mut in_buf =    [1u8; 1 << 19];
-    let mut out_buf = [1u8; 1 << 19];
+const MTU: usize = 16384;
 
-    for &msg_size in [4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288].iter() {
-        let lat : u64;
-    
-        lat = rdtscp!({
-            _socket.send(&out_buf[0..msg_size]); 
-            match _socket.recv(&mut in_buf[0..msg_size]){
-                Ok(received) => {                
-                    println!("received {} bytes", received);
-                },
-               Err(e) => println!("recv function failed: {:?}", e),
-            }
-            }, 100);
+fn send_long_msg(mut _socket: UdpSocket, out_buf: &[u8], msg_size: usize) {
+    let mut size = MTU;
+
+    while (size > 0) {
+        match _socket.send(&out_buf[0..size]) {
+            Ok(n) => println!("Sent {} bytes", n),
+            Err(e) => println!("error: {:?}", e),
+        }
+        size -= 16384;
+    }
+}
+
+fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
+    let mut in_buf = [1u8; 1 << 19];
+    let out_buf = [1u8; 1 << 19];
+    const num_repeat: usize = 2;
+
+    for &msg_size in [
+        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
+    ]
+    .iter()
+    {
+        let lat: u64;
+
+        lat = rdtscp!(
+            {
+                let mut net_received = 0;
+                while net_received < msg_size {
+                    println!("waiting to receive");
+                    match _socket.recv(&mut in_buf[0..msg_size]) {
+                        Ok(received) => {
+                            //println!("received {} bytes", received);
+                            net_received += received;
+                        }
+                        Err(e) => println!("recv function failed: {:?}", e),
+                    }
+                }
+
+                println!("...Trying to send: {} bytes", msg_size);
+                if msg_size > MTU {
+                    let mut remaining = msg_size;
+                    let mut size = MTU;
+
+                    while size > 0 {
+                        //println!("While top");
+                        match _socket.send(&out_buf[0..size]) {
+                            Ok(_n) => {}, //{println!("Multi::Sent {} bytes", n); },
+                            Err(e) =>{ println!("error: {:?}", e)},
+                        }
+                        remaining = remaining - size;
+                        size = if remaining > MTU { MTU } else { remaining };
+                        //println!("while bottom");
+                    }
+                } else {
+                    match _socket.send(&out_buf[0..msg_size]) {
+                        Ok(n) => println!("Sent {} bytes", n),
+                        Err(e) => {
+                            println!("error: {:?}", e);
+                        }
+                    }
+                };
+            },
+            num_repeat
+        );
 
         //println!("{:?}", buffer);
-        println!("{} = {}", msg_size, lat as f32/2.0);
+        println!("{} = {}", msg_size, lat as f32 / 2.0);
         //println!("{}", _socket.nodelay().unwrap());
     }
+    Ok(())
 }
 
 fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
@@ -40,25 +88,33 @@ fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
 
     // send some MiB data
     // read back 1 byte
-     let lat: u64 = rdtscp!({
+    let lat: u64 = rdtscp!(
+        {
 
-         // ...... todo
+            // ...... todo
 
-    }, 100);
+        },
+        100
+    );
 
-    println!("throughput = {} M bytes per {} cycles", MAX_MSG/(1024*1024), lat);
+    println!(
+        "throughput = {} M bytes per {} cycles",
+        MAX_MSG / (1024 * 1024),
+        lat
+    );
     Ok(())
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let socket = UdpSocket::bind("127.0.0.1:3333").expect("couldn't bind to address");
-    socket.connect("127.0.0.1:8080").expect("connect function failed");
-   
+    socket
+        .connect("127.0.0.1:8080")
+        .expect("connect function failed");
     println!("\nMeasuring latency...\n");
-    measure_latency(socket);
+    measure_latency(socket)?;
     println!("\nDone!\n");
 
     println!();
+
+    Ok(())
 }
-
-
