@@ -1,1 +1,11 @@
 \section{Clock Resolution}
+
+To begin with, we need tools to measure the time.
+
+The Linux operating system provides multiple system calls to measure the time, in different resolutions.
+
+As per the POSIX manual\cite{posix_clock_gettime}, the function \texttt{gettimeofday} is obsolete so we chose \texttt{clock\_gettime} instead.
+
+The resolution is the smallest possible increase of the clock. In order to measure the resolution, we tried to create minimal possible differences between two time measurements. For this to happen, we insert an line of assembly \texttt{inc r12} into the code.
+
+However, along with \texttt{clock\_gettime}, function \texttt{clock\_getres} is provided for user to query the resolution of time. As we demonstrated later, it produces the same result as ours.

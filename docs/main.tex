@@ -2,6 +2,8 @@
 
 \linespread{1.5}
 \usepackage{libertine, graphicx}
+\usepackage{inconsolata}
+\usepackage{hyperref}
 
 
 \begin{document}
@@ -9,17 +11,19 @@
 \author{Kedar Bastakoti, Ruohui Wang}
 \date{}
 
+\maketitle
+
 \begin{abstract}
     There are multiple ways to do inter-process communications(IPC). For example, pipe is often used to communicate between processes, whereas TCP and UDP can also be used to communicate both locally and remotely. Due to their differences in design, they tend to have different
 \end{abstract}
 
-\maketitle
+\include{sections/resolution}
+\include{sections/pipe}
+\include{sections/tcp}
+\include{sections/udp}
+\include{sections/eval}
 
-\include{sections/resolution.tex}
-\include{sections/pipe.tex}
-\include{sections/tcp.tex}
-\include{sections/udp.tex}
-\include{sections/eval.tex}
-
+\bibliographystyle{acm}
+\bibliography{biblography}
     
 \end{document}
