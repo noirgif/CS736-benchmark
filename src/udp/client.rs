@@ -24,16 +24,16 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
 
             let mut net_received = 0;
             while net_received < msg_size {
-                println!("Waiting to receive: {}", msg_size - net_received);
+                //println!("Waiting to receive: {}", msg_size - net_received);
                 match _socket.recv(&mut in_buf[0..msg_size]) {
                     Ok(received) => {
-                        println!("received {} bytes of {}", received, msg_size);
+                        //println!("received {} bytes of {}", received, msg_size);
                         net_received += received;
-                        println!(
-                            "net_received = {}, cond = {}",
-                            net_received,
-                            net_received < msg_size
-                        );
+                        // println!(
+                        //     "net_received = {}, cond = {}",
+                        //     net_received,
+                        //     net_received < msg_size
+                        // );
                     }
                     Err(e) => {
                         println!("recv function failed: {:?}", e);
@@ -42,7 +42,7 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                 }
             }
 
-            println!("...Trying to send: {} bytes", msg_size);
+            //println!("...Trying to send: {} bytes", msg_size);
             if msg_size > MTU {
                 let mut remaining = msg_size;
                 let mut size = MTU;
@@ -50,7 +50,7 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                 while size > 0 {
                     match _socket.send(&out_buf[0..size]) {
                         Ok(n) => {
-                            println!("Multi::Sent {} bytes", n);
+                            //println!("Multi::Sent {} bytes", n);
                         }
                         Err(e) => {
                             println!("send error: {:?}", e);
@@ -63,7 +63,9 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                 }
             } else {
                 match _socket.send(&out_buf[0..msg_size]) {
-                    Ok(n) => println!("Sent {} bytes", n),
+                    Ok(n) => {
+                        //println!("Sent {} bytes", n);
+                    }
                     Err(e) => {
                         println!("send error: {:?}", e);
                     }

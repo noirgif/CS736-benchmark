@@ -8,6 +8,7 @@ use std::time::Duration;
 mod measure;
 
 const MTU: usize = 16384;
+const CPU_GHZ: f64 = 2.0;
 
 fn send_long_msg(mut _socket: UdpSocket, out_buf: &[u8], msg_size: usize) {
     let mut size = MTU;
@@ -36,7 +37,7 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
         // server is first sending  then reading  the test data
         lat = rdtscp!(
             {
-                println!("...Trying to send: {} bytes", msg_size);
+                //println!("...Trying to send: {} bytes", msg_size);
                 if msg_size > MTU {
                     let mut remaining = msg_size;
                     let mut size = MTU;
@@ -45,7 +46,7 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                         //println!("While top");
                         match _socket.send(&out_buf[0..size]) {
                             Ok(_n) => {
-                                println!("Multi::Sent {} bytes", _n);
+                                //println!("Multi::Sent {} bytes", _n);
                             }
                             Err(e) => {
                                 println!("send error: {:?}", e);
@@ -59,7 +60,7 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                 } else {
                     match _socket.send(&out_buf[0..msg_size]) {
                         Ok(n) => {
-                            println!("Sent {} bytes", n);
+                            //println!("Sent {} bytes", n);
                         }
                         Err(e) => {
                             println!("send error: {:?}", e);
@@ -69,10 +70,10 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
 
                 let mut net_received = 0;
                 while net_received < msg_size {
-                    println!("waiting to receive");
+                    //println!("waiting to receive");
                     match _socket.recv(&mut in_buf[0..msg_size]) {
                         Ok(received) => {
-                            println!("received {} bytes", received);
+                            //println!("received {} bytes", received);
                             net_received += received;
                         }
                         Err(e) => {
@@ -91,10 +92,11 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
 
         //println!("{:?}", buffer);
         println!(
-            "<size, cycles/byte, total cycles> = <{}, {}, {}>>",
+            "<size, cpb, c, ns> = <{}, {}, {}, {}>",
             msg_size,
             lat as f32 / (2.0 * msg_size as f32),
-            lat
+            lat,
+            lat as f64/CPU_GHZ
         );
         //println!("{}", _socket.nodelay().unwrap());
     }
@@ -127,6 +129,8 @@ fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
 }
 
 fn main() -> std::io::Result<()> {
+    println!("\nPlease make sure client is started first!");
+
     let socket = UdpSocket::bind("127.0.0.1:3333").expect("couldn't bind to address");
     socket
         .connect("127.0.0.1:8080")
