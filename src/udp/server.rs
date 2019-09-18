@@ -2,6 +2,7 @@
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::UdpSocket;
+use std::time::Duration;
 
 #[macro_use]
 mod measure;
@@ -16,7 +17,7 @@ fn send_long_msg(mut _socket: UdpSocket, out_buf: &[u8], msg_size: usize) {
             Ok(n) => println!("Sent {} bytes", n),
             Err(e) => println!("error: {:?}", e),
         }
-        size -= 16384;
+        size -= MTU;
     }
 }
 
@@ -32,21 +33,29 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     {
         let lat: u64;
 
+        // server is first reading then writing the test data
         lat = rdtscp!(
             {
                 let mut net_received = 0;
                 while net_received < msg_size {
-                    println!("waiting to receive");
+                    //println!("waiting to receive");
                     match _socket.recv(&mut in_buf[0..msg_size]) {
                         Ok(received) => {
                             //println!("received {} bytes", received);
                             net_received += received;
                         }
-                        Err(e) => println!("recv function failed: {:?}", e),
+                        Err(e) => {
+                            println!("recv err on msg_size ({}): {:?}", msg_size, e);
+                            break;
+                        }
                     }
                 }
+                // skip if not correct message received
+                if net_received != msg_size {
+                    continue;
+                }
 
-                println!("...Trying to send: {} bytes", msg_size);
+                //println!("...Trying to send: {} bytes", msg_size);
                 if msg_size > MTU {
                     let mut remaining = msg_size;
                     let mut size = MTU;
@@ -54,8 +63,13 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                     while size > 0 {
                         //println!("While top");
                         match _socket.send(&out_buf[0..size]) {
-                            Ok(_n) => {}, //{println!("Multi::Sent {} bytes", n); },
-                            Err(e) =>{ println!("error: {:?}", e)},
+                            Ok(_n) => {
+                                //{println!("Multi::Sent {} bytes", n); },
+                            }
+                            Err(e) => {
+                                println!("send error: {:?}", e);
+                                break;
+                            }
                         }
                         remaining = remaining - size;
                         size = if remaining > MTU { MTU } else { remaining };
@@ -63,9 +77,11 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                     }
                 } else {
                     match _socket.send(&out_buf[0..msg_size]) {
-                        Ok(n) => println!("Sent {} bytes", n),
+                        Ok(n) => {
+                            //println!("Sent {} bytes", n);
+                        }
                         Err(e) => {
-                            println!("error: {:?}", e);
+                            println!("send error: {:?}", e);
                         }
                     }
                 };
@@ -74,7 +90,11 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
         );
 
         //println!("{:?}", buffer);
-        println!("{} = {}", msg_size, lat as f32 / 2.0);
+        println!(
+            "<size, cycles/byte> = <{}, {}>>",
+            msg_size,
+            lat as f32 / (2.0 * msg_size as f32)
+        );
         //println!("{}", _socket.nodelay().unwrap());
     }
     Ok(())
@@ -110,6 +130,15 @@ fn main() -> std::io::Result<()> {
     socket
         .connect("127.0.0.1:8080")
         .expect("connect function failed");
+    // initial handshake
+    socket.set_read_timeout(Some(Duration::new(5, 0)))?;
+    socket.set_write_timeout(Some(Duration::new(5, 0)))?;
+    socket.send(&mut [1])?;
+
+    const TIMEOUT: Duration = Duration::from_millis(100);
+    socket.set_read_timeout(Some(TIMEOUT))?;
+    socket.set_write_timeout(Some(TIMEOUT))?;
+
     println!("\nMeasuring latency...\n");
     measure_latency(socket)?;
     println!("\nDone!\n");
