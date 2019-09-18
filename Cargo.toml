@@ -33,3 +33,7 @@ path ="src/tcpip/server.rs"
 [[bin]]
 name = "measure_pipe"
 path = "src/pipe.rs"
+
+[[bin]]
+name = "precision_rdtscp"
+path = "src/clockprecision_rdtscp.rs"

@@ -1,36 +1,25 @@
-use std::time::{Duration, Instant};
-use std::thread::sleep;
-extern crate core;
-use core::arch::x86_64::__rdtscp;
-// extern "C" {
-//     pub unsafe fn __rdtscp(aux: *mut u32) -> u64
-// }
+#![feature(asm)]
+#![allow(unused_unsafe)]
+
+#[macro_use]
+mod measure;
 
 fn main() {
-   let now = Instant::now();
 
-let mut z = 0;
+    let mut res : i64 = 0;
 
-//   // we sleep for 2 seconds
-//   for x in 1..2 {
-//       z = z + x;
-//   }
-   
-   let m = now.elapsed().as_nanos();
-   println!("{} {}", m, z);
+    let nop_time = rdtscp!({ unsafe {
+        asm!("nop");
+        asm!("nop");
+        // asm!("nop");
+        asm!("inc r12" : "={r12}"(res) : : : "intel");
+        // asm!("nop" :::);
+        // asm!("nop" :::);
+        // asm!("nop" :::);
+        // asm!("nop" :::);
+    } }, 100000);
 
-   let mut aux : u32 = 0;
-   let t1 : u64;
-   let t2 : u64;
+    let empty_time = rdtscp!({ unsafe {} }, 100000);
 
-   t1 = unsafe { __rdtscp(&mut aux)};
-
-   //for i in 1..5 {
-
-//   }
-
-t2 = unsafe { __rdtscp(&mut aux) };
-println!("diff = {}", t2-t1);
-
-
+    println!("{} {} {} {}", empty_time, nop_time, nop_time - empty_time, res);
 }
