@@ -10,8 +10,6 @@ mod measure;
 
 
 fn measure_latency() -> std::io::Result<()> {
-    let mut f = File::create("pipe_latency")?;
-
     let pipe1 = &mut [0 as c_int, 0 as c_int];
     let pipe2 = &mut [0 as c_int, 0 as c_int];
 
@@ -19,25 +17,43 @@ fn measure_latency() -> std::io::Result<()> {
         panic!("Error creating pipe");
     }
 
-    // maximum message size: 1024MiB
-    const MAX_MSG: usize = 1 << 30;
-
     // times to loop
     const LOOP_NUM: usize = 10000;
 
-    for msg_size in [4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288].iter() {
+    let mut results = vec![(0usize, 0u64); 0];
+
+
+    for &msg_size in [4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288].iter() {
         let lat : u64;
 
         let pid = unsafe { fork() };
 
-        let mut buf = String::with_capacity(MAX_MSG);
+        let mut buf = vec![0u8; msg_size];
+
         if pid != 0 {
             // parent process
             lat = gettime!((
                 unsafe {
-                    write(pipe1[1], " ".as_ptr() as *const c_void, *msg_size);
-                    pipe1[1].flush();
-                    read(pipe2[0], buf.as_mut_ptr() as *mut c_void, *msg_size);
+                    let mut n = 0usize;
+                    while n < msg_size {
+                        let result = write(pipe1[1], (buf.as_ptr() as *const c_void).offset(n as isize), msg_size - n);
+                        if result > 0 {
+                            n += result as usize;
+                        }
+                        else {
+                            panic!("Error when writing to pipe!")
+                        }
+                    }
+                    n = 0;
+                    while n < msg_size {
+                        let result = read(pipe2[0], (buf.as_mut_ptr() as *mut c_void).offset(n as isize), msg_size - n);
+                        if result > 0 {
+                            n += result as usize;
+                        }
+                        else {
+                            panic!("Error when reading from pipe!");
+                        }
+                    }
                 }
             ), LOOP_NUM);
             
@@ -45,25 +61,46 @@ fn measure_latency() -> std::io::Result<()> {
             unsafe {
                 kill(pid, SIGKILL);
             }
-            write!(f, "{} {}\n", msg_size, lat as f64 / 2.)?;
+            results.push((msg_size, lat));
         }
         else {
             for _i in 0..LOOP_NUM {
                 // child process
-                unsafe {
-                    read(pipe1[0], buf.as_mut_ptr() as *mut c_void, *msg_size);
-                    write(pipe2[1], " ".as_ptr() as *const c_void, *msg_size);
+                let mut n = 0usize;
+                // receiving the message
+                while n < msg_size {
+                    let result = unsafe {read(pipe1[0], (buf.as_mut_ptr() as *mut c_void).offset(n as isize), msg_size - n)};
+                    if result > 0 {
+                        n += result as usize;
+                    }
+                    else {
+                        panic!("Error when reading from pipe!")
+                    }
+                }
+                n = 0;
+                // return the same message
+                while n < msg_size {
+                    let result = unsafe { write(pipe2[1], (buf.as_ptr() as *const c_void).offset(n as isize), msg_size - n) };
+                    if result > 0 {
+                        n += result as usize;
+                    }
+                    else {
+                        panic!("Error when writing to pipe!");
+                    }
                 }
             }
         }
+    }
+
+    let mut f = File::create("pipe_latency")?;
+    for (i, j) in results {
+        f.write_fmt(format_args!("{} {}\n", i, j))?;
     }
     Ok(())
 }
 
 
 fn measure_throughput() -> std::io::Result<()> {
-    let mut f = File::create("pipe_throughput")?;
-
     let pipe1 = &mut [0 as c_int, 0 as c_int];
     let pipe2 = &mut [0 as c_int, 0 as c_int];
 
@@ -84,8 +121,21 @@ fn measure_throughput() -> std::io::Result<()> {
         // parent process
         time = gettime!((
             unsafe {
-                write(pipe1[1], buf.as_ptr() as *const c_void, MAX_MSG);
-                read(pipe2[0], buf.as_mut_ptr() as *mut c_void, 1);
+                let mut n = 0usize;
+                while n < MAX_MSG {
+                    let result = write(pipe1[1], (buf.as_ptr() as *const c_void).offset(n as isize), MAX_MSG - n);
+                    if result > 0 {
+                        n += result as usize;
+                    }
+                    else {
+                        panic!("Error when writing to pipe!")
+                    }
+                }
+                let result : isize;
+                result = read(pipe2[0], buf.as_mut_ptr() as *mut c_void, 1);
+                if result <= 0 {
+                    panic!("Error when reading from pipe!");
+                }
             }
         ), 10) as f64 / 1e9;
         
@@ -99,11 +149,27 @@ fn measure_throughput() -> std::io::Result<()> {
             // child process
             unsafe {
                 // read 512MiB
-                read(pipe1[0], buf.as_mut_ptr() as *mut c_void, MAX_MSG);
-                write(pipe2[1], " ".as_ptr() as *const c_void, 1);
+                let mut n = 0usize;
+                // receiving the message
+                while n < MAX_MSG {
+                    let result = read(pipe1[0], (buf.as_mut_ptr() as *mut c_void).offset(n as isize), MAX_MSG);
+                    if result > 0 {
+                        n += result as usize;
+                    }
+                    else {
+                        panic!("Error when reading from pipe!")
+                    }
+                }
+                    
+                let result = write(pipe2[1], " ".as_ptr() as *const c_void, 1);
+                if result <= 0 {
+                    panic!("Error writing to pipe!");
+                }
             }
         }
     }
+
+    let mut f = File::create("pipe_throughput")?;
     write!(f, "{}\n", MAX_MSG as f64 / time)?;
 
     Ok(())

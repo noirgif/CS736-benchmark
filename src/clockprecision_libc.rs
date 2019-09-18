@@ -1,26 +1,28 @@
-extern crate libc;
-use std::time::Duration;
+#![feature(asm)]
+
+#[macro_use]
+mod measure;
+
+use libc::{clock_getres, CLOCK_REALTIME, timespec};
 
 fn main() {
-    let real_clock = libc::CLOCK_REALTIME;
-    let mut start = libc::timespec {
-        tv_sec: 0,
-        tv_nsec: 0,
-    };
-    let mut end = libc::timespec {
-        tv_sec: 0,
-        tv_nsec: 0,
-    };
-    unsafe {
-        libc::clock_gettime(real_clock, &mut start);
-    }
     
-    unsafe {
-        libc::clock_gettime(real_clock, &mut end);
-    }
+    let mut res : i64 = 0;
 
-    let start_dur = Duration::new(start.tv_sec as u64, start.tv_nsec as u32);
-    let end_dur = Duration::new(end.tv_sec as u64, end.tv_nsec as u32);
+    let nop_time = gettime!({ unsafe {
+        // asm!("nop");
+        // asm!("nop");
+        // asm!("nop");
+        // asm!("nop");
+        // asm!("nop");
+        asm!("inc r12" : "={r12}"(res) : "{r12}"(res) : : "intel");
+    } }, 100000);
 
-    print!("{}", (end_dur - start_dur).as_nanos());
+    let empty_time = gettime!({ unsafe {} }, 100000);
+
+    println!("{} {} {} {}", empty_time, nop_time, nop_time - empty_time, res);
+    
+    let mut res = timespec {tv_sec: 0, tv_nsec: 0};
+    unsafe {clock_getres(CLOCK_REALTIME, &mut res); }
+    println!("{}", res.tv_nsec);
 }

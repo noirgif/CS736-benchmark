@@ -37,3 +37,7 @@ path = "src/pipe.rs"
 [[bin]]
 name = "precision_rdtscp"
 path = "src/clockprecision_rdtscp.rs"
+
+[[bin]]
+name = "precision_libc"
+path = "src/clockprecision_libc.rs"
