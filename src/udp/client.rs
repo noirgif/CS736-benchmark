@@ -2,6 +2,7 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::UdpSocket;
 use std::time::Duration;
+use std::env;
 
 #[macro_use]
 mod measure;
@@ -116,10 +117,15 @@ fn main() -> std::io::Result<()> {
     socket.set_read_timeout(Some(TIMEOUT))?;
     socket.set_write_timeout(Some(TIMEOUT))?;
 
-    println!("\nMeasuring latency...\n");
-    //measure_latency(socket)?;
-    println!("\nMeasuring throughput...\n");
-    measure_throughput(socket);
+    // command line args
+    let args: Vec<String> = env::args().collect();
+    let test_type = &args[1];
+
+    if test_type == "lat" {
+        measure_latency(socket)?;
+    } else {
+        measure_throughput(socket);
+    }
     println!("\nDone!\n");
 
     Ok(())
