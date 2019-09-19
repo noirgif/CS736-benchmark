@@ -2,6 +2,8 @@ use std::process::{Command, Stdio};
 
 fn main() {
     println!("\nStarting Tests ...\n");
+
+    // UDP Latency
     let client = Command::new("./target/debug/uc")
     .arg("lat")
     .arg("1000000")
@@ -15,14 +17,8 @@ fn main() {
     .arg("1000000")
     .status().expect("Unable to start server");
 
-    // Execute `ls` in the current directory of the program.
-    //list_dir.status().expect("process failed to execute");
 
-    println!("...starting...");
-
-    // Change `ls` to execute in the root directory.
-    //list_dir.current_dir("/");
-
-    // And then execute `ls` again but in the root directory.
-   // list_dir.status().expect("process failed to execute");
+    // UDP Throughput
+    
+    println!("\n\nSuccess all tests have concluded!\n\n");
 }
