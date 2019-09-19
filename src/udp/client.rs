@@ -95,7 +95,7 @@ fn main() -> std::io::Result<()> {
     println!("init handshake...");
     match socket.recv(&mut [1]) {
         Ok(_n) => {
-            println!("HS:: recv :: {} bytes", n);
+            println!("HS:: recv :: {} bytes", _n);
         }
         Err(e) => {
             println!("HS recv err: {:?}", e);
@@ -103,7 +103,7 @@ fn main() -> std::io::Result<()> {
     }
     match socket.send(&mut [1]) {
         Ok(_n) => {
-            println!("HS:: send:: {} bytes", n);
+            println!("HS:: send:: {} bytes", _n);
         }
         Err(e) => {
             println!("HS send err: {:?}", e);
