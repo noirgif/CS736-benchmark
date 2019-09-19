@@ -2,11 +2,11 @@ use std::process::{Command, Stdio};
 
 fn main() {
     println!("\nStarting Tests ...\n");
-    // let mut client = Command::new("./target/debug/uc lat")
-    // .stderr(Stdio::null())
-    // .stdout(Stdio::null())
-    // .stderr(Stdio::null())
-    // .spawn();
+    let mut client = Command::new("./target/debug/uc lat")
+    .stderr(Stdio::null())
+    .stdout(Stdio::null())
+    .stderr(Stdio::null())
+    .spawn();
 
     let mut server = Command::new ("./target/debug/us")
     .arg("lat")
