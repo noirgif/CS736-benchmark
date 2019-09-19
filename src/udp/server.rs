@@ -104,7 +104,7 @@ pub fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
                 }
             } else {
                 match _socket.send(&out_buf[0..msg_size]) {
-                    Ok(n) => {
+                    Ok(_n) => {
                         //println!("Sent {} bytes", n);
                     }
                     Err(e) => {
@@ -237,7 +237,7 @@ pub fn measure_latency_multi(mut _socket: UdpSocket) -> std::io::Result<()> {
                     }
                 } else {
                     match _socket.send(&out_buf[0..msg_size]) {
-                        Ok(n) => {
+                        Ok(_n) => {
                             //println!("Sent {} bytes", n);
                         }
                         Err(e) => {

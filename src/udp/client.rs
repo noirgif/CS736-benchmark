@@ -42,7 +42,7 @@ pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     Ok(())
 }
 
-fn measure_throughput(mut _socket: UdpSocket) {
+pub fn measure_throughput(mut _socket: UdpSocket) {
     // let mut array: [i32; 3] = [0; 3];
     //const MAX_MSG: usize = 1 << 26;
     let mut in_buf = vec![1u8; MTU];
@@ -125,7 +125,7 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn measure_latency_MTU(mut _socket: UdpSocket) -> std::io::Result<()> {
+pub fn measure_latency_mtu(mut _socket: UdpSocket) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
     //let mut i = 0;
