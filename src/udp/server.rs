@@ -14,12 +14,12 @@ const CPU_GHZ: f64 = 2.0e9;
 pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
-    const NUM_REPEAT: usize = 100;
+    const NUM_REPEAT: usize = 1000000;
 
     println!("\n\n UDP Latency Test:");
     println!("{:10}\t\t{}", "MSG Size", "ns");
     for &msg_size in [
-        4usize, 16, 64, 256, 1024, 4096, 16384, //65536, 262144, 524288,
+        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, //262144, 524288,
     ]
     .iter()
     {
