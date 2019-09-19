@@ -39,8 +39,6 @@ fn measure_throughput (mut stream: TcpStream){
 }
 
 fn main() -> std::io::Result<()>{
-
-
     let mut stream = TcpStream::connect("127.0.0.1:8080").unwrap();
     stream.set_nodelay(true)?;
 
