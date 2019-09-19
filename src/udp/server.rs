@@ -20,7 +20,7 @@ pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     println!("\n\n UDP Latency Test:");
     println!("{:10}\t\t{}", "MSG Size", "ns");
     for &msg_size in [
-        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, //262144, 524288,
+        4usize, 16, 64, 256, 1024, 4096, 16384, //65536, 262144, 524288,
     ]
     .iter()
     {
