@@ -68,7 +68,7 @@ pub fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
     let mut in_buf = [1u8; 8];
     let out_buf = vec![1u8; MAX_MSG];
 
-    const PACKET_MULTIPLIER: usize = 100000;
+    const PACKET_MULTIPLIER: usize = 100;
 
     let mut aux: u32 = 0;
     let mut t1: u64;
