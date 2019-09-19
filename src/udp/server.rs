@@ -10,7 +10,7 @@ use std::time::Duration;
 mod measure;
 
 const MTU: usize = 16384;
-const CPU_GHZ: f64 = 2.0e9;
+const CPU_GHZ: f64 = 3.5e9;
 
 pub fn measure_latency(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
