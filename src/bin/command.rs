@@ -4,7 +4,7 @@ pub fn run_udp_lat() {
     // UDP Latency
     let _client = Command::new("./target/debug/uc")
         .arg("lat")
-        .arg("1000")
+        .arg("1000000")
         .stderr(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -12,7 +12,7 @@ pub fn run_udp_lat() {
 
     let _server = Command::new("./target/debug/us")
         .arg("lat")
-        .arg("1000")
+        .arg("1000000")
         .status()
         .expect("Unable to start server");
 }
