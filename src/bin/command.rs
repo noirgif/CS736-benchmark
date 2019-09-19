@@ -1,36 +1,44 @@
 use std::process::{Command, Stdio};
 
+pub fn t1() {
+    // UDP Latency
+    let _client = Command::new("./target/debug/uc")
+        .arg("lat")
+        .arg("1000000")
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn();
+
+    let _server = Command::new("./target/debug/us")
+        .arg("lat")
+        .arg("1000000")
+        .status()
+        .expect("Unable to start server");
+}
+
+pub fn t2() {
+    // UDP Throughput
+    let _client = Command::new("./target/debug/uc")
+        .arg("tp")
+        .arg("1000000")
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn();
+
+    let _server = Command::new("./target/debug/us")
+        .arg("tp")
+        .arg("1000000")
+        .status()
+        .expect("Unable to start server");
+}
+
+
 fn main() {
     println!("\nStarting Tests ...\n");
 
-    // UDP Latency
-    let client = Command::new("./target/debug/uc")
-    .arg("lat")
-    .arg("1000000")
-    .stderr(Stdio::null())
-    .stdout(Stdio::null())
-    .stderr(Stdio::null())
-    .spawn();
+    t2();
 
-    let server = Command::new ("./target/debug/us")
-    .arg("lat")
-    .arg("1000000")
-    .status().expect("Unable to start server");
-
-
-    // UDP Throughput
-    let client = Command::new("./target/debug/uc")
-    .arg("lat")
-    .arg("1000000")
-    .stderr(Stdio::null())
-    .stdout(Stdio::null())
-    .stderr(Stdio::null())
-    .spawn();
-
-    let server = Command::new ("./target/debug/us")
-    .arg("lat")
-    .arg("1000000")
-    .status().expect("Unable to start server");
-    
     println!("\n\nAll tests have concluded!\n\n");
 }
