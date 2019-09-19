@@ -4,6 +4,7 @@ fn main() {
     println!("\nStarting Tests ...\n");
     let mut client = Command::new("./target/debug/uc")
     .arg("lat")
+    .arg("")
     .stderr(Stdio::null())
     .stdout(Stdio::null())
     .stderr(Stdio::null())

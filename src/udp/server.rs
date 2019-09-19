@@ -12,7 +12,7 @@ mod measure;
 const MTU: usize = 16384;
 const CPU_GHZ: f64 = 2.0e9;
 
-pub fn measure_latency(mut _socket: UdpSocket, num_repeat: usize) -> std::io::Result<()> {
+pub fn measure_latency(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
     //const num_repeat: usize = 100;
@@ -193,7 +193,7 @@ fn main() -> std::io::Result<()> {
     // command line args
     let args: Vec<String> = env::args().collect();
     let test_type = &args[1];
-    let num_repeat = &args[2];
+    let num_repeat = match (args[2]).parse::<u64>() { Ok(n) => n, Err(_e) => 100};
 
     if test_type == "lat" {
         measure_latency(socket, num_repeat)?;
