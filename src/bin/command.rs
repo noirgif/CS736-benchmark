@@ -1,4 +1,4 @@
-use std::process::{Command, Stdio};
+use std::process::{Command};
 
 fn main() {
     let mut list_dir = Command::new("./target/debug/uc lat")
