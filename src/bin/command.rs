@@ -2,7 +2,8 @@ use std::process::{Command, Stdio};
 
 fn main() {
     println!("\nStarting Tests ...\n");
-    let mut client = Command::new("./target/debug/uc lat")
+    let mut client = Command::new("./target/debug/uc")
+    .arg("lat")
     .stderr(Stdio::null())
     .stdout(Stdio::null())
     .stderr(Stdio::null())
