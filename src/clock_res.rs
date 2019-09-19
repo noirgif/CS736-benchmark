@@ -7,6 +7,8 @@ mod measure;
 
 fn rdtscp_resolution() {
 
+    // TSC Freq, about the same as CPU freq
+    const freq : f64 = 3.2;
     let mut res : i64 = 0;
 
     // dummy instructions
@@ -16,12 +18,13 @@ fn rdtscp_resolution() {
         asm!("nop" :::: "volatile");
         asm!("nop" :::: "volatile");
         asm!("nop" :::: "volatile");
+        asm!("nop" :::: "volatile");
         // asm!("nop");
     } }, 1000000);
 
     let empty_time = rdtscp!({ unsafe {} }, 1000000);
 
-    println!("{}", nop_time - empty_time);
+    println!("rdtscp {}", (nop_time - empty_time) as isize as f64 / freq);
 }
 
 
@@ -46,7 +49,7 @@ fn gettime_resolution() {
 
     let empty_time = gettime!({ unsafe {} }, 100000);
 
-    println!("{}", nop_time - empty_time);
+    println!("gettime {}", (nop_time - empty_time) as isize);
     let mut res = timespec {tv_sec: 0, tv_nsec: 0};
     unsafe {clock_getres(CLOCK_REALTIME, &mut res); }
     println!("{}", res.tv_nsec);
