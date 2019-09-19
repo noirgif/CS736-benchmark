@@ -8,7 +8,9 @@ fn main() {
     // .stderr(Stdio::null())
     // .spawn();
 
-    let mut server = Command::new ("./target/debug/us").status().expect("Unable to start server");
+    let mut server = Command::new ("./target/debug/us")
+    .arg("lat")
+    .status().expect("Unable to start server");
 
     // Execute `ls` in the current directory of the program.
     //list_dir.status().expect("process failed to execute");
