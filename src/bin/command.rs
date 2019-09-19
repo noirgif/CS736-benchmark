@@ -1,10 +1,14 @@
 use std::process::{Command, Stdio};
 
 fn main() {
-    let mut list_dir = Command::new("./target/debug/uc lat")
+    let mut client = Command::new("./target/debug/uc lat")
     .stderr(Stdio::null())
-    .stdout(Stdio::null()
+    .stdout(Stdio::null())
+    .stderr(Stdio::null())
     .spawn();
+
+    let mut server = Command::new ("./target/debug/us thp")
+    .status().espect("failed to run Server");
 
     // Execute `ls` in the current directory of the program.
     //list_dir.status().expect("process failed to execute");
