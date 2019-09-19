@@ -1,6 +1,6 @@
 use std::process::{Command, Stdio};
 
-pub fn t1() {
+pub fn run_udp_lat() {
     // UDP Latency
     let _client = Command::new("./target/debug/uc")
         .arg("lat")
@@ -17,7 +17,7 @@ pub fn t1() {
         .expect("Unable to start server");
 }
 
-pub fn t2() {
+pub fn run_udp_tp() {
     // UDP Throughput
     let _client = Command::new("./target/debug/uc")
         .arg("tp")
@@ -38,8 +38,8 @@ pub fn t2() {
 fn main() {
     println!("\nStarting Tests ...\n");
 
-    t1();
-    t2();
+    run_udp_lat();
+    run_udp_tp();
 
     println!("\n\nAll tests have concluded!\n\n");
 }
