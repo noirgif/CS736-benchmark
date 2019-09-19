@@ -11,42 +11,13 @@ mod measure;
 const MTU: usize = 16384;
 const CPU_GHZ: f64 = 2.0e9;
 
-/**
- * These two utilities will convert back and forth and u32 integer!
- */
-fn int_to_bytes(x: u32) -> [u8; 4] {
-    [
-        ((x >> 24) & 0xff) as u8,
-        ((x >> 16) & 0xff) as u8,
-        ((x >> 8) & 0xff) as u8,
-        (x & 0xff) as u8,
-    ]
-}
-
-fn bytes_to_int(bytes: &[u8; 4]) -> u32 {
-    ((bytes[0] as u32) << 24)
-        | ((bytes[1] as u32) << 16)
-        | ((bytes[2] as u32) << 8)
-        | (bytes[3] as u32)
-}
-
-fn send_long_msg(mut _socket: UdpSocket, out_buf: &[u8], msg_size: usize) {
-    let mut size = MTU;
-
-    while (size > 0) {
-        match _socket.send(&out_buf[0..size]) {
-            Ok(n) => println!("Sent {} bytes", n),
-            Err(e) => println!("error: {:?}", e),
-        }
-        size -= MTU;
-    }
-}
-
 fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
-    const num_repeat: usize = 2;
+    const NUM_REPEAT: usize = 2;
 
+    println!("\n\n UDP Latency Test:");
+    println!("{:10}\t\t{}", "MSG Size", "ns");
     for &msg_size in [
         4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
     ]
@@ -102,21 +73,19 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                         }
                     }
                 }
-                // skip if not correct message received
+                // skip if not correct message size received
                 if net_received != msg_size {
                     continue;
                 }
             },
-            num_repeat
+            NUM_REPEAT
         );
 
         //println!("{:?}", buffer);
         println!(
-            "<size, cpb, c, ns> = <{}, {}, {}, {}>",
+            "{:10}\t\t{}",
             msg_size,
-            lat as f32 / (2.0 * msg_size as f32),
-            lat,
-            lat as f64 / CPU_GHZ
+            lat as f64 / (2.0 * CPU_GHZ) * 1.0e+9
         );
         //println!("{}", _socket.nodelay().unwrap());
     }
@@ -124,12 +93,14 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
 }
 
 fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
+     println!("\n\nUDP Throughput Test:");
+     println!("{:10}\t\t{}", "MSG Size", "MiBps");
     const MAX_MSG: usize = 1 << 26;
 
     let mut in_buf = [1u8; 8];
     let out_buf = vec![1u8; MAX_MSG];
 
-    const PACKET_MULTIPLIER: usize = 100000;
+    const PACKET_MULTIPLIER: usize = 100;
 
         let mut aux: u32 = 0;
         let mut t1: u64;
@@ -195,7 +166,7 @@ fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
             Ok(_received) => {
                 t2 = unsafe { __rdtscp(&mut aux) };
                 let total_data:u64 = u64::from_le_bytes(in_buf);
-                println!("total data transfer = {}, dt = {}", total_data, t2-t1);
+                //println!("total data transfer = {}, dt = {}", total_data, t2-t1);
                 tput = total_data as f64 / (t2 - t1) as f64; // bytes per cycle
             }
             Err(e) => {
@@ -206,7 +177,7 @@ fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
 
         //println!("{:?}", buffer);
         println!(
-            "<{}, {} MiBps>",
+            "{:7}\t\t{}",
             msg_size,
             tput/(1024*1024) as f64 * CPU_GHZ
         );
@@ -251,9 +222,8 @@ fn main() -> std::io::Result<()> {
     socket.set_read_timeout(Some(TIMEOUT))?;
     socket.set_write_timeout(Some(TIMEOUT))?;
 
-    println!("\nMeasuring latency...\n");
-    //measure_latency(socket)?;
-    measure_throughput(socket)?;
+    measure_latency(socket)?;
+    //measure_throughput(socket)?;
     println!("\nDone!\n");
 
     println!();
