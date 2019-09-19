@@ -19,7 +19,7 @@ fn measure_latency (mut stream: TcpStream) {
     }
 }
 
-fn measure_throughput (mut stream: TcpStream){
+pub fn measure_throughput (mut stream: TcpStream){
     // let mut array: [i32; 3] = [0; 3];
     const MAX_MSG: usize = 1 << 26;
     
