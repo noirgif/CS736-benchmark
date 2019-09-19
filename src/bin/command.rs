@@ -1,7 +1,9 @@
-use std::process::{Command};
+use std::process::{Command, Stdio};
 
 fn main() {
     let mut list_dir = Command::new("./target/debug/uc lat")
+    .stderr(Stdio::null())
+    .stdout(Stdio::null()
     .spawn();
 
     // Execute `ls` in the current directory of the program.
