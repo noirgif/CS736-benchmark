@@ -85,9 +85,9 @@ pub fn measure_throughput(mut _socket: UdpSocket) {
 }
 
 fn main() -> std::io::Result<()> {
-    let socket = UdpSocket::bind("127.0.0.1:8080").expect("couldn't bind to address");
+    let socket = UdpSocket::bind("127.0.0.1:49114").expect("couldn't bind to address");
     socket
-        .connect("127.0.0.1:3333")
+        .connect("127.0.0.1:49113")
         .expect("connect function failed");
 
     // initial handshake

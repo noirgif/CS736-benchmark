@@ -158,9 +158,9 @@ pub fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     println!("\nPlease make sure client is started first!");
 
-    let socket = UdpSocket::bind("127.0.0.1:3333").expect("couldn't bind to address");
+    let socket = UdpSocket::bind("127.0.0.1:49113").expect("couldn't bind to address");
     socket
-        .connect("127.0.0.1:8080")
+        .connect("127.0.0.1:49114")
         .expect("connect function failed");
     // initial handshake
     socket.set_read_timeout(Some(Duration::new(10, 0)))?;
