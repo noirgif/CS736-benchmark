@@ -5,48 +5,91 @@
 #[macro_use]
 mod measure;
 
+use std::collections::BTreeSet;
+
+// TSC frequency, in GHz
+const TSC_FREQ : f64 = 3.2;
+
 fn rdtscp_resolution() {
 
     let mut res : i64 = 0;
 
+    let mut set = BTreeSet::new();
+
     // dummy instructions
-    let nop_time = rdtscp!({ unsafe {
-        // asm!("inc r12" : "={r12}"(res) : "{r12}"(res) : : "intel", "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        // asm!("nop");
-    } }, 1000000);
+    for i in 0..5000 {
+        set.insert(rdtscp!({ unsafe {
+            asm!("nop" :::: "volatile");
+            asm!("nop" :::: "volatile");
+            asm!("nop" :::: "volatile");
+        } }, 1));
+    }
 
-    let empty_time = rdtscp!({ unsafe {} }, 1000000);
+    for i in 0..5000 {
+        set.insert(rdtscp!({ unsafe {} }, 1));
+    }
 
-    println!("{}", nop_time - empty_time);
+    
+    const MAX_DIFF : i64 = 99999;
+    let mut min_diff = MAX_DIFF;
+
+    // iterate possible time in ascending order
+    // to find the smallest difference
+    let mut current = 0u64;
+    for &i in set.iter()
+    {
+        if i > current && ((i - current) as i64) < min_diff {
+            min_diff = (i - current) as i64;
+        }
+        current = i;
+    }
+    
+
+    println!("rdtscp {}", min_diff as f64 / TSC_FREQ);
 }
 
 
 use libc::{clock_getres, CLOCK_REALTIME, timespec};
 
 fn gettime_resolution() {
-    
     let mut res : i64 = 0;
 
-    let nop_time = gettime!({ unsafe {
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        asm!("nop" :::: "volatile");
-        // asm!("inc r12" : "={r12}"(res) : "{r12}"(res) : : "intel", "volatile");
-    } }, 1000000);
+    let mut set = BTreeSet::new();
 
-    let empty_time = gettime!({ unsafe {} }, 100000);
+    // dummy instructions
+    for i in 0..5000 {
+        set.insert(gettime!({ unsafe {
+            // asm!("inc r12" : "={r12}"(res) : "{r12}"(res) : : "intel", "volatile");
+            asm!("nop" :::: "volatile");
+            asm!("nop" :::: "volatile");
+            asm!("nop" :::: "volatile");
+            asm!("nop" :::: "volatile");
+            // asm!("nop");
+        } }, 1));
+    }
 
-    println!("{}", nop_time - empty_time);
+    for i in 0..5000 {
+        set.insert(gettime!({ unsafe {} }, 1));
+    }
+
+    
+    const MAX_DIFF : i64 = 99999;
+    let mut min_diff = MAX_DIFF;
+
+    // iterate possible time in ascending order
+    // to find the smallest difference
+    let mut current = 0u64;
+    for &i in set.iter()
+    {
+        if i > current && ((i - current) as i64) < min_diff {
+            min_diff = (i - current) as i64;
+        }
+        current = i;
+    }
+    
+
+    println!("{}", min_diff);
+
     let mut res = timespec {tv_sec: 0, tv_nsec: 0};
     unsafe {clock_getres(CLOCK_REALTIME, &mut res); }
     println!("{}", res.tv_nsec);
