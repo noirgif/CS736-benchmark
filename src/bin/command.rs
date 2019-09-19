@@ -2,7 +2,7 @@ use std::process::{Command, Stdio};
 
 pub fn run_udp_lat() {
     // UDP Latency
-    let _client = Command::new("cargo ./target/debug/uc")
+    let _client = Command::new("./target/debug/uc")
         .arg("lat")
         .arg("1000000")
         .stderr(Stdio::null())
@@ -10,7 +10,7 @@ pub fn run_udp_lat() {
         .stderr(Stdio::null())
         .spawn();
 
-    let _server = Command::new("cargo ./target/debug/us")
+    let _server = Command::new("./target/debug/us")
         .arg("lat")
         .arg("1000000")
         .status()
