@@ -10,4 +10,4 @@ Also, the x86 CPU provides \texttt{rdtscp} instruction to give the CPU timestamp
 
 The resolution is the smallest possible increase of the clock. In order to measure the resolution, we tried to create minimal possible differences between two time measurements. We create such difference by inserting an line of assembly \texttt{inc r12} into the code. And the result shows we are producing
 
-However, along with \texttt{clock\_gettime}, function \texttt{clock\_getres} is provided for user to query the resolution of time. As we demonstrated later, it produces the same result as ours.
+However, along with \texttt{clock\_gettime}, function \texttt{clock\_getres} is provided for user to query the resolution of time. As we will demonstrated, it produces the same result as ours.
