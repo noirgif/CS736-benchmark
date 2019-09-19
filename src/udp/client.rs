@@ -94,7 +94,7 @@ fn main() -> std::io::Result<()> {
     socket.set_write_timeout(Some(Duration::new(10, 0)))?;
     println!("init handshake...");
     match socket.recv(&mut [1]) {
-        Ok(n) => {
+        Ok(_n) => {
             println!("HS:: recv :: {} bytes", n);
         }
         Err(e) => {
@@ -102,7 +102,7 @@ fn main() -> std::io::Result<()> {
         }
     }
     match socket.send(&mut [1]) {
-        Ok(n) => {
+        Ok(_n) => {
             println!("HS:: send:: {} bytes", n);
         }
         Err(e) => {
