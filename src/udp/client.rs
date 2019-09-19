@@ -8,69 +8,35 @@ mod measure;
 
 const MTU: usize = 16384;
 
-fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
+pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
     //let mut i = 0;
     let sizes = [
-        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
+        4usize, 16, 64, 256, 1024, 4096, 16384, //65536, 262144, 524288,
     ];
-    const NUM_REPEAT: usize = 2;
+    const NUM_REPEAT: usize = 100;
 
-    for _i in 0..10 {
+    for _i in 0..7 {
         let msg_size = sizes[_i];
         for _j in 0..NUM_REPEAT {
             // client first receives then sends
-
-            let mut net_received = 0;
-            while net_received < msg_size {
-                //println!("Waiting to receive: {}", msg_size - net_received);
-                match _socket.recv(&mut in_buf[0..msg_size]) {
-                    Ok(received) => {
-                        //println!("received {} bytes of {}", received, msg_size);
-                        net_received += received;
-                        // println!(
-                        //     "net_received = {}, cond = {}",
-                        //     net_received,
-                        //     net_received < msg_size
-                        // );
-                    }
-                    Err(e) => {
-                        println!("recv function failed: {:?}", e);
-                        break;
-                    }
+            match _socket.recv(&mut in_buf[0..msg_size]) {
+                Ok(_n) => {}
+                Err(e) => {
+                    println!("recv err on msg_size ({}): {:?}", msg_size, e);
+                    break;
                 }
             }
 
-            //println!("...Trying to send: {} bytes", msg_size);
-            if msg_size > MTU {
-                let mut remaining = msg_size;
-                let mut size = MTU;
-
-                while size > 0 {
-                    match _socket.send(&out_buf[0..size]) {
-                        Ok(n) => {
-                            //println!("Multi::Sent {} bytes", n);
-                        }
-                        Err(e) => {
-                            println!("send error: {:?}", e);
-                            break;
-                        }
-                    }
-                    remaining = remaining - size;
-                    size = if remaining > MTU { MTU } else { remaining };
-                    //println!("remaining = {}", remaining);
+            match _socket.send(&out_buf[0..msg_size]) {
+                Ok(_n) => {
+                    //println!("Sent {} bytes", n);
                 }
-            } else {
-                match _socket.send(&out_buf[0..msg_size]) {
-                    Ok(n) => {
-                        //println!("Sent {} bytes", n);
-                    }
-                    Err(e) => {
-                        println!("send error: {:?}", e);
-                    }
+                Err(e) => {
+                    println!("send error: {:?}", e);
                 }
-            };
+            }
         }
     }
     Ok(())
@@ -82,7 +48,7 @@ fn measure_throughput(mut _socket: UdpSocket) {
     let mut in_buf = vec![1u8; MTU];
     let mut out_buf = [1u8; 8];
 
-    let mut total_received:u64 = 0;
+    let mut total_received: u64 = 0;
 
     let sizes = [
         4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
@@ -156,5 +122,73 @@ fn main() -> std::io::Result<()> {
     //measure_throughput(socket);
     println!("\nDone!\n");
 
+    Ok(())
+}
+
+pub fn measure_latency_MTU(mut _socket: UdpSocket) -> std::io::Result<()> {
+    let mut in_buf = [1u8; 1 << 19];
+    let out_buf = [1u8; 1 << 19];
+    //let mut i = 0;
+    let sizes = [
+        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
+    ];
+    const NUM_REPEAT: usize = 2;
+
+    for _i in 0..10 {
+        let msg_size = sizes[_i];
+        for _j in 0..NUM_REPEAT {
+            // client first receives then sends
+
+            let mut net_received = 0;
+            while net_received < msg_size {
+                //println!("Waiting to receive: {}", msg_size - net_received);
+                match _socket.recv(&mut in_buf[0..msg_size]) {
+                    Ok(received) => {
+                        //println!("received {} bytes of {}", received, msg_size);
+                        net_received += received;
+                        // println!(
+                        //     "net_received = {}, cond = {}",
+                        //     net_received,
+                        //     net_received < msg_size
+                        // );
+                    }
+                    Err(e) => {
+                        println!("recv function failed: {:?}", e);
+                        break;
+                    }
+                }
+            }
+
+            //println!("...Trying to send: {} bytes", msg_size);
+            if msg_size > MTU {
+                let mut remaining = msg_size;
+                let mut size = MTU;
+
+                while size > 0 {
+                    match _socket.send(&out_buf[0..size]) {
+                        Ok(n) => {
+                            //println!("Multi::Sent {} bytes", n);
+                        }
+                        Err(e) => {
+                            println!("send error: {:?}", e);
+                            break;
+                        }
+                    }
+                    remaining = remaining - size;
+                    size = if remaining > MTU { MTU } else { remaining };
+                    //println!("remaining = {}", remaining);
+                }
+            } else {
+                match _socket.send(&out_buf[0..msg_size]) {
+                    Ok(n) => {
+                        //println!("Sent {} bytes", n);
+                    }
+                    Err(e) => {
+                        println!("send error: {:?}", e);
+                    }
+                }
+            };
+        }
+    }
     Ok(())
 }
