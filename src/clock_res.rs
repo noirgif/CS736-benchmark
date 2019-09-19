@@ -12,6 +12,8 @@ const TSC_FREQ : f64 = 3.2;
 
 fn rdtscp_resolution() {
 
+    // TSC Freq, about the same as CPU freq
+    const freq : f64 = 3.2;
     let mut res : i64 = 0;
 
     let mut set = BTreeSet::new();
@@ -53,7 +55,6 @@ use libc::{clock_getres, CLOCK_REALTIME, timespec};
 
 fn gettime_resolution() {
     let mut res : i64 = 0;
-
     let mut set = BTreeSet::new();
 
     // dummy instructions
