@@ -4,7 +4,7 @@ fn main() {
     println!("\nStarting Tests ...\n");
     let mut client = Command::new("./target/debug/uc")
     .arg("lat")
-    .arg("")
+    .arg("1000000")
     .stderr(Stdio::null())
     .stdout(Stdio::null())
     .stderr(Stdio::null())
@@ -12,6 +12,7 @@ fn main() {
 
     let mut server = Command::new ("./target/debug/us")
     .arg("lat")
+    .arg("1000000")
     .status().expect("Unable to start server");
 
     // Execute `ls` in the current directory of the program.
