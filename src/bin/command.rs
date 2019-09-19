@@ -1,25 +1,45 @@
 use std::process::{Command, Stdio};
 
+pub fn run_udp_lat() {
+    // UDP Latency
+    let _client = Command::new("./target/debug/uc")
+        .arg("lat")
+        .arg("1000000")
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn();
+
+    let _server = Command::new("./target/debug/us")
+        .arg("lat")
+        .arg("1000000")
+        .status()
+        .expect("Unable to start server");
+}
+
+pub fn run_udp_tp() {
+    // UDP Throughput
+    let _client = Command::new("./target/debug/uc")
+        .arg("tp")
+        .arg("1000")
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn();
+
+    let _server = Command::new("./target/debug/us")
+        .arg("tp")
+        .arg("1000")
+        .status()
+        .expect("Unable to start server");
+}
+
+
 fn main() {
     println!("\nStarting Tests ...\n");
-    // let mut client = Command::new("./target/debug/uc lat")
-    // .stderr(Stdio::null())
-    // .stdout(Stdio::null())
-    // .stderr(Stdio::null())
-    // .spawn();
 
-    let mut server = Command::new ("./target/debug/us")
-    .arg("lat")
-    .status().expect("Unable to start server");
+    run_udp_lat();
+    run_udp_tp();
 
-    // Execute `ls` in the current directory of the program.
-    //list_dir.status().expect("process failed to execute");
-
-    println!("...starting...");
-
-    // Change `ls` to execute in the root directory.
-    //list_dir.current_dir("/");
-
-    // And then execute `ls` again but in the root directory.
-   // list_dir.status().expect("process failed to execute");
+    println!("\n\nAll tests have concluded!\n\n");
 }

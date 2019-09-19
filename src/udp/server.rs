@@ -10,12 +10,12 @@ use std::time::Duration;
 mod measure;
 
 const MTU: usize = 16384;
-const CPU_GHZ: f64 = 2.0e9;
+const CPU_GHZ: f64 = 3.5e9;
 
-pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
+pub fn measure_latency(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
-    const NUM_REPEAT: usize = 1000000;
+    //const num_repeat: usize = 100;
 
     println!("\n\n UDP Latency Test:");
     println!("{:10}\t\t{}", "MSG Size", "ns");
@@ -46,7 +46,7 @@ pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                     }
                 }
             },
-            NUM_REPEAT
+            num_repeat
         );
 
         //println!("{:?}", buffer);
@@ -60,7 +60,7 @@ pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
+pub fn measure_throughput(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Result<()> {
     println!("\n\nUDP Throughput Test:");
     println!("{:10}\t\t{}", "MSG Size", "MiBps");
     const MAX_MSG: usize = 1 << 26;
@@ -68,7 +68,6 @@ pub fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
     let mut in_buf = [1u8; 8];
     let out_buf = vec![1u8; MAX_MSG];
 
-    const PACKET_MULTIPLIER: usize = 100000;
 
     let mut aux: u32 = 0;
     let mut t1: u64;
@@ -82,7 +81,7 @@ pub fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
         let tput;
         t1 = unsafe { __rdtscp(&mut aux) };
         // server is first sending  then reading  the test data
-        for _x in 0..PACKET_MULTIPLIER {
+        for _x in 0..num_repeat {
             //println!("...Trying to send: {} bytes", msg_size);
             if msg_size > MTU {
                 let mut remaining = msg_size;
@@ -193,11 +192,12 @@ fn main() -> std::io::Result<()> {
     // command line args
     let args: Vec<String> = env::args().collect();
     let test_type = &args[1];
+    let num_repeat = match (args[2]).parse::<u64>() { Ok(n) => n, Err(_e) => 100};
 
     if test_type == "lat" {
-        measure_latency(socket)?;
+        measure_latency(socket, num_repeat)?;
     } else {
-        measure_throughput(socket)?;
+        measure_throughput(socket, num_repeat)?;
     }
     println!("\nDone!\n");
 
