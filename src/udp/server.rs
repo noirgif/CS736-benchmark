@@ -12,10 +12,10 @@ mod measure;
 const MTU: usize = 16384;
 const CPU_GHZ: f64 = 2.0e9;
 
-pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
+pub fn measure_latency(mut _socket: UdpSocket, num_repeat: usize) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
-    const NUM_REPEAT: usize = 100;
+    //const num_repeat: usize = 100;
 
     println!("\n\n UDP Latency Test:");
     println!("{:10}\t\t{}", "MSG Size", "ns");
@@ -46,7 +46,7 @@ pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
                     }
                 }
             },
-            NUM_REPEAT
+            num_repeat
         );
 
         //println!("{:?}", buffer);
