@@ -16,7 +16,7 @@ pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     let sizes = [
         4usize, 16, 64, 256, 1024, 4096, 16384, //65536, 262144, 524288,
     ];
-    const NUM_REPEAT: usize = 1000000;
+    const NUM_REPEAT: usize = 100;
 
     for _i in 0..7 {
         let msg_size = sizes[_i];
