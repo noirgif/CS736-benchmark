@@ -38,6 +38,7 @@ pub fn t2() {
 fn main() {
     println!("\nStarting Tests ...\n");
 
+    t1();
     t2();
 
     println!("\n\nAll tests have concluded!\n\n");
