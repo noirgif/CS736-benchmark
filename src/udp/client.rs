@@ -6,7 +6,25 @@ use std::time::Duration;
 #[macro_use]
 mod measure;
 
-const MTU: usize = 16384;
+const MTU: usize = 16384;/**
+ * These two utilities will convert back and forth and u32 integer!
+ */
+fn int_to_bytes(x: u32) -> [u8; 4] {
+    [
+        ((x >> 24) & 0xff) as u8,
+        ((x >> 16) & 0xff) as u8,
+        ((x >> 8) & 0xff) as u8,
+        (x & 0xff) as u8,
+    ]
+}
+
+fn bytes_to_int(bytes: &[u8; 4]) -> u32 {
+    ((bytes[0] as u32) << 24)
+        | ((bytes[1] as u32) << 16)
+        | ((bytes[2] as u32) << 8)
+        | (bytes[3] as u32)
+}
+
 
 fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
@@ -78,16 +96,43 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
 
 fn measure_throughput(mut _socket: UdpSocket) {
     // let mut array: [i32; 3] = [0; 3];
-    const MAX_MSG: usize = 1 << 26;
-    let mut in_buf = vec![1u8; MAX_MSG];
-    let out_buf = [1u8; 1];
+    //const MAX_MSG: usize = 1 << 26;
+    let mut in_buf = vec![1u8; MTU];
+    let mut out_buf = [1u8; 4];
 
-    const MAX_REPEAT: u32 = 100;
-    println!("\nBefore");
-    for _i in 0..MAX_REPEAT {
-        // .... todo
+    let mut total_received:u32 = 0;
+
+    let sizes = [
+        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
+    ];
+
+    for _x in sizes.iter() {
+        // read data first until end signal then send received bytes count
+        println!("waiting to recv");
+        while in_buf[1] != 0u8 {
+            match _socket.recv(&mut in_buf) {
+                Ok(received) => {
+                    total_received += received as u32;
+                }
+                Err(e) => {
+                    println!("recv function failed: {:?}", e);
+                }
+            }
+        }
+
+        out_buf = int_to_bytes(total_received);
+        match _socket.send(&out_buf) {
+            Ok(_sent) => {}
+            Err(err) => {
+                println!("{:?}", err);
+            }
+        };
+
+        println!("top bit = {}, net = {}", in_buf[1], total_received);
+        // reset
+        total_received = 0;
+        in_buf[1] = 1u8;
     }
-    println!("\nAfter");
 }
 
 fn main() -> std::io::Result<()> {
@@ -124,7 +169,9 @@ fn main() -> std::io::Result<()> {
     socket.set_write_timeout(Some(TIMEOUT))?;
 
     println!("\nMeasuring latency...\n");
-    measure_latency(socket)?;
+    //measure_latency(socket)?;
+    println!("\nMeasuring throughput...\n");
+    measure_throughput(socket);
     println!("\nDone!\n");
 
     Ok(())
