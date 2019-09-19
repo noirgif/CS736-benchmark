@@ -8,7 +8,7 @@ fn main() {
     .spawn();
 
     let mut server = Command::new ("./target/debug/us thp")
-    .status().espect("failed to run Server");
+    .status().expect("failed to run Server");
 
     // Execute `ls` in the current directory of the program.
     //list_dir.status().expect("process failed to execute");
