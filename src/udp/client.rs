@@ -117,9 +117,9 @@ fn main() -> std::io::Result<()> {
     socket.set_write_timeout(Some(TIMEOUT))?;
 
     println!("\nMeasuring latency...\n");
-    measure_latency(socket)?;
+    //measure_latency(socket)?;
     println!("\nMeasuring throughput...\n");
-    //measure_throughput(socket);
+    measure_throughput(socket);
     println!("\nDone!\n");
 
     Ok(())

@@ -189,8 +189,8 @@ fn main() -> std::io::Result<()> {
     socket.set_read_timeout(Some(TIMEOUT))?;
     socket.set_write_timeout(Some(TIMEOUT))?;
 
-    measure_latency(socket)?;
-    //measure_throughput(socket)?;
+    //measure_latency(socket)?;
+    measure_throughput(socket)?;
     println!("\nDone!\n");
 
     println!();
