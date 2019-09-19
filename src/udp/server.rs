@@ -126,10 +126,10 @@ fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
 fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
     const MAX_MSG: usize = 1 << 26;
 
-    let mut in_buf = [1u8; 4];
+    let mut in_buf = [1u8; 8];
     let out_buf = vec![1u8; MAX_MSG];
 
-    const PACKET_MULTIPLIER: usize = 1000;
+    const PACKET_MULTIPLIER: usize = 100000;
 
         let mut aux: u32 = 0;
         let mut t1: u64;
@@ -194,7 +194,7 @@ fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()> {
         match _socket.recv(&mut in_buf) {
             Ok(_received) => {
                 t2 = unsafe { __rdtscp(&mut aux) };
-                let total_data = bytes_to_int(&in_buf);
+                let total_data:u64 = u64::from_le_bytes(in_buf);
                 println!("total data transfer = {}, dt = {}", total_data, t2-t1);
                 tput = total_data as f64 / (t2 - t1) as f64; // bytes per cycle
             }

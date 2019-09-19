@@ -98,9 +98,9 @@ fn measure_throughput(mut _socket: UdpSocket) {
     // let mut array: [i32; 3] = [0; 3];
     //const MAX_MSG: usize = 1 << 26;
     let mut in_buf = vec![1u8; MTU];
-    let mut out_buf = [1u8; 4];
+    let mut out_buf = [1u8; 8];
 
-    let mut total_received:u32 = 0;
+    let mut total_received:u64 = 0;
 
     let sizes = [
         4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
@@ -112,7 +112,7 @@ fn measure_throughput(mut _socket: UdpSocket) {
         while in_buf[1] != 0u8 {
             match _socket.recv(&mut in_buf) {
                 Ok(received) => {
-                    total_received += received as u32;
+                    total_received += received as u64;
                 }
                 Err(e) => {
                     println!("recv function failed: {:?}", e);
@@ -120,7 +120,7 @@ fn measure_throughput(mut _socket: UdpSocket) {
             }
         }
 
-        out_buf = int_to_bytes(total_received);
+        out_buf = u64::to_le_bytes(total_received);
         match _socket.send(&out_buf) {
             Ok(_sent) => {}
             Err(err) => {
