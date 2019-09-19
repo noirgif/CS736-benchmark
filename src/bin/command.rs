@@ -1,10 +1,11 @@
 use std::process::Command;
 
 fn main() {
-    let mut list_dir = Command::new("./target/debug/uc");
+    let mut list_dir = Command::new("./target/debug/uc")
+    .spawn();
 
     // Execute `ls` in the current directory of the program.
-    list_dir.status().expect("process failed to execute");
+    //list_dir.status().expect("process failed to execute");
 
     println!("...starting...");
 
