@@ -1,10 +1,10 @@
 \section{Clock Resolution}
 
-To begin with, we need tools to measure the time.
+To begin with, how can we measure the time? We need clocks to do so. And with all the ways to measure, people care about criteria that makes measurements good. One of the criteria is how precise they can be. It is worth noting that accuracy is also a key factor to consider, which we will leave to the discussion.
 
-The Linux operating system provides multiple system calls to measure the time, in different resolutions.
+The Linux operating system provides multiple system calls for measurements, in different resolutions.
 
-As per the POSIX manual\cite{posix_clock_gettime}, the function \texttt{gettimeofday} is obsolete so we chose \texttt{clock\_gettime} instead.
+As per the POSIX manual\cite{posix_clock_gettime}, the function \texttt{gettimeofday} is obsolete, and the switch to \texttt{clock\_gettime} is recommended, so we used \texttt{clock\_gettime} instead.
 
 Also, the x86 CPU provides \texttt{rdtscp} instruction to give the CPU timestamp, in terms of TSC frequency.
 
