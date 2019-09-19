@@ -120,9 +120,10 @@ fn main() -> std::io::Result<()> {
     // command line args
     let args: Vec<String> = env::args().collect();
     let test_type = &args[1];
+    let num_repeat = &args[2];
 
     if test_type == "lat" {
-        measure_latency(socket)?;
+        measure_latency(socket, num_repeat)?;
     } else {
         measure_throughput(socket);
     }
