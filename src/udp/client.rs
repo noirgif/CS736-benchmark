@@ -9,18 +9,18 @@ mod measure;
 
 const MTU: usize = 16384;
 
-pub fn measure_latency(mut _socket: UdpSocket) -> std::io::Result<()> {
+pub fn measure_latency(mut _socket: UdpSocket, num_repeat:usize) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
     //let mut i = 0;
     let sizes = [
         4usize, 16, 64, 256, 1024, 4096, 16384, //65536, 262144, 524288,
     ];
-    const NUM_REPEAT: usize = 100;
+   // const num_repeat: usize = 100;
 
     for _i in 0..7 {
         let msg_size = sizes[_i];
-        for _j in 0..NUM_REPEAT {
+        for _j in 0..num_repeat {
             // client first receives then sends
             match _socket.recv(&mut in_buf[0..msg_size]) {
                 Ok(_n) => {}
