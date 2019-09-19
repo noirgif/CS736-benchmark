@@ -2,8 +2,7 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 
 
-fn measure_latency (mut stream: TcpStream) {   
-    
+fn measure_latency (mut stream: TcpStream) {    
     let mut in_buf =    [1u8; 1 << 19];
     let mut out_buf =   [1u8; 1 << 19];
     //let mut i = 0;
