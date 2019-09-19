@@ -1,7 +1,7 @@
 use std::process::Command;
 
 fn main() {
-    let mut list_dir = Command::new("cargo run --bin uc lat");
+    let mut list_dir = Command::new("./target/debug/uc lat");
 
     // Execute `ls` in the current directory of the program.
     list_dir.status().expect("process failed to execute");
