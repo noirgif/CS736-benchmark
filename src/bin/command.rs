@@ -2,7 +2,7 @@ use std::process::{Command, Stdio};
 
 fn main() {
     println!("\nStarting Tests ...\n");
-    let mut client = Command::new("./target/debug/uc")
+    let client = Command::new("./target/debug/uc")
     .arg("lat")
     .arg("1000000")
     .stderr(Stdio::null())
@@ -10,7 +10,7 @@ fn main() {
     .stderr(Stdio::null())
     .spawn();
 
-    let mut server = Command::new ("./target/debug/us")
+    let server = Command::new ("./target/debug/us")
     .arg("lat")
     .arg("1000000")
     .status().expect("Unable to start server");
