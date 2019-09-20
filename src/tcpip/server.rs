@@ -39,7 +39,8 @@ fn measure_latency(mut _socket: TcpStream) -> std::io::Result<()> {
 }
 
 fn measure_throughput(mut _socket: TcpStream) -> std::io::Result<()> {
-    const MAX_MSG: usize = 1 << 26;
+    const MAX_MSG: usize = 524288;
+    const TOTAL_SENT: usize = 1 << 30;
 
     let mut in_buf = vec![1u8; 1];
     let out_buf = vec![1u8; MAX_MSG];
@@ -55,11 +56,14 @@ fn measure_throughput(mut _socket: TcpStream) -> std::io::Result<()> {
         let lat: u64;
 
         lat = rdtscp!(
-            {
-                _socket.write_all(&out_buf[0..msg_size])?;
+            {  
+                let mut n = 0usize;
+                while n < TOTAL_SENT {
+                    n += _socket.write(&out_buf[0..msg_size])?;
+                }
                 _socket.read_exact(&mut in_buf)?;
             },
-            NUM_LOOP
+            1
         );
 
         results.push((msg_size, lat as f64 / TSC_FREQ));
