@@ -1,0 +1,63 @@
+cargo build --release --bin us --bin uc --bin tis --bin tic --bin clock_res --bin kernelcall --bin measure_pipe
+cargo run --release --bin clock_res
+clock_gettime 1
+clock_getres 1
+rdtscp 1.25
+cargo run --release --bin kernelcall
+getpid 366.5625
+getuid 364.6875
+mkdir -p data && cd data && cargo run --release --bin measure_pipe
+cargo run --release --bin tis latency 127.0.0.1:8082 &
+sleep 1 && cargo run --release --bin tic latency 127.0.0.1:8082
+Binding to 127.0.0.1:8082 ...
+4 4076.40625
+16 4380.46875
+64 4317.34375
+256 4484.6875
+1024 4569.21875
+4096 5145
+16384 6907.5
+65536 16656.875
+262144 32860
+524288 61024.53125
+cargo run --release --bin tis throughput 127.0.0.1:8085 &
+sleep 1 && cargo run --release --bin tic throughput 127.0.0.1:8085
+Binding to 127.0.0.1:8085 ...
+4 0.4434727621158178
+16 1.8490599083576325
+64 6.667320953096198
+256 27.80545965761469
+1024 109.57223001402525
+4096 389.06872509960164
+16384 1309.4489838675886
+65536 2956.131015726617
+262144 6583.4951775897825
+524288 7554.5105149343235
+cargo run --release --bin us lat 100000 127.0.0.1:8086 127.0.0.1:8087 &
+sleep 1 && cargo run --release --bin uc lat 100000 127.0.0.1:8087 127.0.0.1:8086
+
+
+ UDP Latency Test:
+MSG Size  		ns
+         4		3364.84375
+        16		3187.8125
+        64		3347.96875
+       256		2944.53125
+      1024		3209.6875
+      4096		3921.25
+     16384		5729.375
+     64000		12285.625
+cargo run --release --bin us tput 100000 127.0.0.1:8088 127.0.0.1:8089 &
+sleep 1 && cargo run --release --bin uc tput 100000 127.0.0.1:8089 127.0.0.1:8088
+
+
+UDP Throughput Test:
+MSG Size  		MiBps
+      4		1.8956741808742867
+     16		7.631450892096825
+     64		30.427443298850243
+    256		119.10810808660555
+   1024		465.93377826905856
+   4096		1692.0973585364607
+  16384		3983.8424118273624
+  64000		9172.672696220918
