@@ -158,7 +158,7 @@ fn measure_throughput() -> std::io::Result<()> {
                             panic!("Error when reading from pipe!");
                         }
                     }),
-                    10
+                    1
                 ) as f64
                     / 1e9,
             );

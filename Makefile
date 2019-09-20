@@ -23,13 +23,13 @@ tcpip_tput: build
 
 .PHONY: udp_lat
 udp_lat: build
-	cargo run --release --bin us lat 10000 127.0.0.1:8086 127.0.0.1:8087 &
-	sleep 1 && cargo run --release --bin uc lat 10000 127.0.0.1:8087 127.0.0.1:8086
+	cargo run --release --bin us lat 100000 127.0.0.1:8086 127.0.0.1:8087 &
+	sleep 1 && cargo run --release --bin uc lat 100000 127.0.0.1:8087 127.0.0.1:8086
 
 .PHONY: udp_tput
 udp_tput: build
-	cargo run --release --bin us tput 10000 127.0.0.1:8088 127.0.0.1:8089 &
-	sleep 1 && cargo run --release --bin uc tput 10000 127.0.0.1:8089 127.0.0.1:8088
+	cargo run --release --bin us tput 100000 127.0.0.1:8088 127.0.0.1:8089 &
+	sleep 1 && cargo run --release --bin uc tput 100000 127.0.0.1:8089 127.0.0.1:8088
 
 .PHONY: measure_pipe
 measure_pipe: build
