@@ -1,19 +1,18 @@
 // measure pipe latency
 #![allow(unused_imports)]
 
-use libc::{pipe, fork, c_int, c_void, read, write, kill, SIGKILL};
+use libc::{c_int, c_void, fork, kill, pipe, read, write, SIGKILL};
 use std::fs::File;
 use std::io::prelude::*;
 
 #[macro_use]
 mod measure;
 
-
 fn measure_latency() -> std::io::Result<()> {
     let pipe1 = &mut [0 as c_int, 0 as c_int];
     let pipe2 = &mut [0 as c_int, 0 as c_int];
 
-    if unsafe {pipe(pipe1.as_mut_ptr())} != 0 || unsafe {pipe(pipe2.as_mut_ptr())} != 0 {
+    if unsafe { pipe(pipe1.as_mut_ptr()) } != 0 || unsafe { pipe(pipe2.as_mut_ptr()) } != 0 {
         panic!("Error creating pipe");
     }
 
@@ -22,9 +21,12 @@ fn measure_latency() -> std::io::Result<()> {
 
     let mut results = vec![(0usize, 0u64); 0];
 
-
-    for &msg_size in [4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288].iter() {
-        let lat : u64;
+    for &msg_size in [
+        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
+    ]
+    .iter()
+    {
+        let lat: u64;
 
         let pid = unsafe { fork() };
 
@@ -32,59 +34,74 @@ fn measure_latency() -> std::io::Result<()> {
 
         if pid != 0 {
             // parent process
-            lat = gettime!((
-                unsafe {
+            lat = gettime!(
+                (unsafe {
                     let mut n = 0usize;
                     while n < msg_size {
-                        let result = write(pipe1[1], (buf.as_ptr() as *const c_void).offset(n as isize), msg_size - n);
+                        let result = write(
+                            pipe1[1],
+                            (buf.as_ptr() as *const c_void).offset(n as isize),
+                            msg_size - n,
+                        );
                         if result > 0 {
                             n += result as usize;
-                        }
-                        else {
+                        } else {
                             panic!("Error when writing to pipe!")
                         }
                     }
                     n = 0;
                     while n < msg_size {
-                        let result = read(pipe2[0], (buf.as_mut_ptr() as *mut c_void).offset(n as isize), msg_size - n);
+                        let result = read(
+                            pipe2[0],
+                            (buf.as_mut_ptr() as *mut c_void).offset(n as isize),
+                            msg_size - n,
+                        );
                         if result > 0 {
                             n += result as usize;
-                        }
-                        else {
+                        } else {
                             panic!("Error when reading from pipe!");
                         }
                     }
-                }
-            ), LOOP_NUM);
-            
+                }),
+                LOOP_NUM
+            );
             // because the child process is in an infinite loop, simply kill it.
             unsafe {
                 kill(pid, SIGKILL);
             }
             results.push((msg_size, lat));
-        }
-        else {
+        } else {
             for _i in 0..LOOP_NUM {
                 // child process
                 let mut n = 0usize;
                 // receiving the message
                 while n < msg_size {
-                    let result = unsafe {read(pipe1[0], (buf.as_mut_ptr() as *mut c_void).offset(n as isize), msg_size - n)};
+                    let result = unsafe {
+                        read(
+                            pipe1[0],
+                            (buf.as_mut_ptr() as *mut c_void).offset(n as isize),
+                            msg_size - n,
+                        )
+                    };
                     if result > 0 {
                         n += result as usize;
-                    }
-                    else {
+                    } else {
                         panic!("Error when reading from pipe!")
                     }
                 }
                 n = 0;
                 // return the same message
                 while n < msg_size {
-                    let result = unsafe { write(pipe2[1], (buf.as_ptr() as *const c_void).offset(n as isize), msg_size - n) };
+                    let result = unsafe {
+                        write(
+                            pipe2[1],
+                            (buf.as_ptr() as *const c_void).offset(n as isize),
+                            msg_size - n,
+                        )
+                    };
                     if result > 0 {
                         n += result as usize;
-                    }
-                    else {
+                    } else {
                         panic!("Error when writing to pipe!");
                     }
                 }
@@ -99,79 +116,88 @@ fn measure_latency() -> std::io::Result<()> {
     Ok(())
 }
 
-
 fn measure_throughput() -> std::io::Result<()> {
     let pipe1 = &mut [0 as c_int, 0 as c_int];
     let pipe2 = &mut [0 as c_int, 0 as c_int];
 
-    if unsafe {pipe(pipe1.as_mut_ptr())} != 0 || unsafe {pipe(pipe2.as_mut_ptr())} != 0 {
+    if unsafe { pipe(pipe1.as_mut_ptr()) } != 0 || unsafe { pipe(pipe2.as_mut_ptr()) } != 0 {
         panic!("Error creating pipe");
     }
 
     // the time cost, in sec
-    let time : f64;
-    const MAX_MSG: usize = 1 << 29;
-
+    let mut results = vec![];
+    const MAX_MSG: usize = 1 << 30;
 
     let pid = unsafe { fork() };
+    let sizes = [4, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288];
 
-    // the buffer 512MiB
-    let mut buf = String::with_capacity(MAX_MSG);
-    if pid != 0 {
-        // parent process
-        time = gettime!((
+    for &msg_size in sizes.iter() {
+        // the buffer 1GiB
+        let mut buf = String::with_capacity(MAX_MSG);
+        if pid != 0 {
+            // parent process
+            results.push(
+                gettime!(
+                    (unsafe {
+                        let mut n = 0usize;
+                        while n < msg_size {
+                            let result = write(
+                                pipe1[1],
+                                (buf.as_ptr() as *const c_void).offset(n as isize),
+                                msg_size - n,
+                            );
+                            if result > 0 {
+                                n += result as usize;
+                            } else {
+                                panic!("Error when writing to pipe!")
+                            }
+                        }
+                        let result: isize;
+                        result = read(pipe2[0], buf.as_mut_ptr() as *mut c_void, 1);
+                        if result <= 0 {
+                            panic!("Error when reading from pipe!");
+                        }
+                    }),
+                    10
+                ) as f64
+                    / 1e9,
+            );
+            // because the child process is in an infinite loop, simply kill it.
             unsafe {
-                let mut n = 0usize;
-                while n < MAX_MSG {
-                    let result = write(pipe1[1], (buf.as_ptr() as *const c_void).offset(n as isize), MAX_MSG - n);
-                    if result > 0 {
-                        n += result as usize;
-                    }
-                    else {
-                        panic!("Error when writing to pipe!")
-                    }
-                }
-                let result : isize;
-                result = read(pipe2[0], buf.as_mut_ptr() as *mut c_void, 1);
-                if result <= 0 {
-                    panic!("Error when reading from pipe!");
-                }
+                kill(pid, SIGKILL);
             }
-        ), 10) as f64 / 1e9;
-        
-        // because the child process is in an infinite loop, simply kill it.
-        unsafe {
-            kill(pid, SIGKILL);
-        }
-    }
-    else {
-        loop {
-            // child process
-            unsafe {
-                // read 512MiB
-                let mut n = 0usize;
-                // receiving the message
-                while n < MAX_MSG {
-                    let result = read(pipe1[0], (buf.as_mut_ptr() as *mut c_void).offset(n as isize), MAX_MSG);
-                    if result > 0 {
-                        n += result as usize;
+        } else {
+            loop {
+                // child process
+                unsafe {
+                    // read 512MiB
+                    let mut n = 0usize;
+                    // receiving the message
+                    while n < msg_size {
+                        let result = read(
+                            pipe1[0],
+                            (buf.as_mut_ptr() as *mut c_void).offset(n as isize),
+                            msg_size - n,
+                        );
+                        if result > 0 {
+                            n += result as usize;
+                        } else {
+                            panic!("Error when reading from pipe!")
+                        }
                     }
-                    else {
-                        panic!("Error when reading from pipe!")
+                    let result = write(pipe2[1], " ".as_ptr() as *const c_void, 1);
+                    if result <= 0 {
+                        panic!("Error writing to pipe!");
                     }
-                }
-                    
-                let result = write(pipe2[1], " ".as_ptr() as *const c_void, 1);
-                if result <= 0 {
-                    panic!("Error writing to pipe!");
                 }
             }
         }
     }
 
     let mut f = File::create("pipe_throughput")?;
-    write!(f, "{}\n", MAX_MSG as f64 / time)?;
-
+    for (&msg_size, &time) in sizes.iter().zip(results.iter()) {
+        write!(f, "{} {}\n", msg_size, MAX_MSG as f64 / time)?;
+    }
     Ok(())
 }
 
