@@ -1,288 +1,135 @@
-#![allow(unused_imports)]
-use core::arch::x86_64::__rdtscp;
-use std::env;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::UdpSocket;
 use std::time::Duration;
+use std::env;
 
 #[macro_use]
 mod measure;
 
-const MTU: usize = 16384;
-const CPU_GHZ: f64 = 3.5e9;
+const MTU: usize = 65000;
 
-pub fn measure_latency(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Result<()> {
+pub fn measure_latency(mut _socket: UdpSocket, num_repeat:u64) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
     let out_buf = [1u8; 1 << 19];
-    //const num_repeat: usize = 100;
+    //let mut i = 0;
+    let sizes = [
+        4usize, 16, 64, 256, 1024, 4096, 16384, 64000, //65536, 262144, 524288,
+    ];
+   // const num_repeat: usize = 100;
 
-    println!("\n\n UDP Latency Test:");
-    println!("{:10}\t\t{}", "MSG Size", "ns");
-    for &msg_size in [
-        4usize, 16, 64, 256, 1024, 4096, 16384, //65536, 262144, 524288,
-    ]
-    .iter()
-    {
-        let lat: u64;
-
-        // server is first sending  then reading  the test data
-        lat = rdtscp!(
-            {
-                //println!("...Trying to send: {} bytes", msg_size);
-                match _socket.send(&out_buf[0..msg_size]) {
-                    Ok(_n) => {
-                        //println!("Sent {} bytes", n);
-                    }
-                    Err(e) => {
-                        println!("send error: {:?}", e);
-                    }
-                }
-                match _socket.recv(&mut in_buf[0..msg_size]) {
-                    Ok(_n) => {}
-                    Err(e) => {
-                        println!("recv err on msg_size ({}): {:?}", msg_size, e);
-                        break;
-                    }
-                }
-            },
-            num_repeat
-        );
-
-        //println!("{:?}", buffer);
-        println!(
-            "{:10}\t\t{}",
-            msg_size,
-            lat as f64 / (2.0 * CPU_GHZ) * 1.0e+9
-        );
-        //println!("{}", _socket.nodelay().unwrap());
-    }
-    Ok(())
-}
-
-pub fn measure_throughput(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Result<()> {
-    println!("\n\nUDP Throughput Test:");
-    println!("{:10}\t\t{}", "MSG Size", "MiBps");
-    const MAX_MSG: usize = 1 << 26;
-
-    let mut in_buf = [1u8; 8];
-    let out_buf = vec![1u8; MAX_MSG];
-
-
-    let mut aux: u32 = 0;
-    let mut t1: u64;
-    let mut t2: u64;
-
-    for &msg_size in [
-        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
-    ]
-    .iter()
-    {
-        let tput;
-        t1 = unsafe { __rdtscp(&mut aux) };
-        // server is first sending  then reading  the test data
-        for _x in 0..num_repeat {
-            //println!("...Trying to send: {} bytes", msg_size);
-            if msg_size > MTU {
-                let mut remaining = msg_size;
-                let mut size = MTU;
-
-                while size > 0 {
-                    //println!("While top");
-                    match _socket.send(&out_buf[0..size]) {
-                        Ok(_n) => {
-                            //println!("Multi::Sent {} bytes", _n);
-                        }
-                        Err(e) => {
-                            println!("send error: {:?}", e);
-                            break;
-                        }
-                    }
-                    remaining = remaining - size;
-                    size = if remaining > MTU { MTU } else { remaining };
-                    //println!("while bottom");
-                }
-            } else {
-                match _socket.send(&out_buf[0..msg_size]) {
-                    Ok(_n) => {
-                        //println!("Sent {} bytes", n);
-                    }
-                    Err(e) => {
-                        println!("send error: {:?}", e);
-                    }
-                }
-            };
-        }
-
-        // at last indicate the end by sending zeroes
-        for _x in 0..1 {
-            match _socket.send(&[0u8; 4]) {
-                Ok(_n) => {
-                    //println!("Multi::Sent {} bytes", _n);
-                }
+    for _i in 0..sizes.len() {
+        let msg_size = sizes[_i];
+        for _j in 0..num_repeat {
+            // client first receives then sends
+            match _socket.recv(&mut in_buf[0..msg_size]) {
+                Ok(_n) => {}
                 Err(e) => {
-                    println!("send error: {:?}", e);
+                    println!("recv err on msg_size ({}): {:?}", msg_size, e);
                     break;
                 }
             }
-        }
 
-        // read back ACK
-        //println!("waiting to receive");
-        match _socket.recv(&mut in_buf) {
-            Ok(_received) => {
-                t2 = unsafe { __rdtscp(&mut aux) };
-                let total_data: u64 = u64::from_le_bytes(in_buf);
-                //println!("total data transfer = {}, dt = {}", total_data, t2-t1);
-                tput = total_data as f64 / (t2 - t1) as f64; // bytes per cycle
-            }
-            Err(e) => {
-                println!("recv err on msg_size ({}): {:?}", msg_size, e);
-                break;
+            match _socket.send(&out_buf[0..msg_size]) {
+                Ok(_n) => {
+                    //println!("Sent {} bytes", n);
+                }
+                Err(e) => {
+                    println!("send error: {:?}", e);
+                }
             }
         }
-
-        //println!("{:?}", buffer);
-        println!(
-            "{:7}\t\t{}",
-            msg_size,
-            tput / (1024 * 1024) as f64 * CPU_GHZ
-        );
-        //println!("{}", _socket.nodelay().unwrap());
     }
-
     Ok(())
 }
 
-fn main() -> std::io::Result<()> {
-    println!("\nPlease make sure client is started first!");
+pub fn measure_throughput(mut _socket: UdpSocket) {
+    // let mut array: [i32; 3] = [0; 3];
+    //const MAX_MSG: usize = 1 << 26;
+    let mut in_buf = vec![1u8; MTU];
+    let mut out_buf;
 
-    let socket = UdpSocket::bind("127.0.0.1:49113").expect("couldn't bind to address");
+    let mut total_received: u64 = 0;
+
+    let sizes = [
+        4usize, 16, 64, 256, 1024, 4096, 16384, 64000, // 65536, 262144, 524288,
+    ];
+
+    for _x in sizes.iter() {
+        // read data first until end signal then send received bytes count
+        //println!("waiting to recv");
+        while in_buf[1] != 0u8 {
+            match _socket.recv(&mut in_buf) {
+                Ok(received) => {
+                    total_received += received as u64;
+                }
+                Err(e) => {
+                    println!("recv function failed: {:?}", e);
+                }
+            }
+        }
+
+        out_buf = u64::to_le_bytes(total_received);
+        match _socket.send(&out_buf) {
+            Ok(_sent) => {}
+            Err(err) => {
+                println!("{:?}", err);
+            }
+        };
+
+        //println!("top bit = {}, net = {}", in_buf[1], total_received);
+        // reset
+        total_received = 0;
+        in_buf[1] = 1u8;
+    }
+}
+
+fn main() -> std::io::Result<()> {
+    // command line args
+    let args: Vec<String> = env::args().collect();
+    let test_type = &args[1];
+    let num_repeat = match (args[2]).parse::<u64>() { Ok(n) => n, Err(_e) => 100};
+    let self_addr = &args[3];
+    let other_addr = &args[4];
+
+    let socket = UdpSocket::bind(self_addr).expect("couldn't bind to address");
     socket
-        .connect("127.0.0.1:49114")
+        .connect(other_addr)
         .expect("connect function failed");
+
     // initial handshake
     socket.set_read_timeout(Some(Duration::new(10, 0)))?;
     socket.set_write_timeout(Some(Duration::new(10, 0)))?;
-
-    println!("init handshake...");
-    match socket.send(&mut [1]) {
-        Ok(n) => {
-            println!("HS:: send:: {} bytes", n);
-        }
-        Err(e) => {
-            println!("HS send err: {:?}", e);
-        }
-    }
+    // println!("init handshake...");
     match socket.recv(&mut [1]) {
-        Ok(n) => {
-            println!("HS:: recv :: {} bytes", n);
+        Ok(_n) => {
+            // println!("HS:: recv :: {} bytes", _n);
         }
         Err(e) => {
             println!("HS recv err: {:?}", e);
         }
     }
+    match socket.send(&mut [1]) {
+        Ok(_n) => {
+            // println!("HS:: send:: {} bytes", _n);
+        }
+        Err(e) => {
+            println!("HS send err: {:?}", e);
+        }
+    }
 
-    println!("\nEnd Shake...\n");
+    // println!("\nEnd Shake...\n");
 
     const TIMEOUT: Duration = Duration::from_millis(10000);
     socket.set_read_timeout(Some(TIMEOUT))?;
     socket.set_write_timeout(Some(TIMEOUT))?;
 
-    // command line args
-    let args: Vec<String> = env::args().collect();
-    let test_type = &args[1];
-    let num_repeat = match (args[2]).parse::<u64>() { Ok(n) => n, Err(_e) => 100};
-
     if test_type == "lat" {
         measure_latency(socket, num_repeat)?;
     } else {
-        measure_throughput(socket, num_repeat)?;
+        measure_throughput(socket);
     }
-    println!("\nDone!\n");
+    // println!("\nDone!\n");
 
-    println!();
-
-    Ok(())
-}
-
-pub fn measure_latency_multi(mut _socket: UdpSocket) -> std::io::Result<()> {
-    let mut in_buf = [1u8; 1 << 19];
-    let out_buf = [1u8; 1 << 19];
-    const NUM_REPEAT: usize = 2;
-
-    println!("\n\n UDP Latency Test:");
-    println!("{:10}\t\t{}", "MSG Size", "ns");
-    for &msg_size in [
-        4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
-    ]
-    .iter()
-    {
-        let lat: u64;
-
-        // server is first sending  then reading  the test data
-        lat = rdtscp!(
-            {
-                //println!("...Trying to send: {} bytes", msg_size);
-                if msg_size > MTU {
-                    let mut remaining = msg_size;
-                    let mut size = MTU;
-
-                    while size > 0 {
-                        //println!("While top");
-                        match _socket.send(&out_buf[0..size]) {
-                            Ok(_n) => {
-                                //println!("Multi::Sent {} bytes", _n);
-                            }
-                            Err(e) => {
-                                println!("send error: {:?}", e);
-                                break;
-                            }
-                        }
-                        remaining = remaining - size;
-                        size = if remaining > MTU { MTU } else { remaining };
-                        //println!("while bottom");
-                    }
-                } else {
-                    match _socket.send(&out_buf[0..msg_size]) {
-                        Ok(_n) => {
-                            //println!("Sent {} bytes", n);
-                        }
-                        Err(e) => {
-                            println!("send error: {:?}", e);
-                        }
-                    }
-                };
-
-                let mut net_received = 0;
-                while net_received < msg_size {
-                    //println!("waiting to receive");
-                    match _socket.recv(&mut in_buf[0..msg_size]) {
-                        Ok(received) => {
-                            //println!("received {} bytes", received);
-                            net_received += received;
-                        }
-                        Err(e) => {
-                            println!("recv err on msg_size ({}): {:?}", msg_size, e);
-                            break;
-                        }
-                    }
-                }
-                // skip if not correct message size received
-                if net_received != msg_size {
-                    continue;
-                }
-            },
-            NUM_REPEAT
-        );
-
-        //println!("{:?}", buffer);
-        println!(
-            "{:10}\t\t{}",
-            msg_size,
-            lat as f64 / (2.0 * CPU_GHZ) * 1.0e+9
-        );
-        //println!("{}", _socket.nodelay().unwrap());
-    }
     Ok(())
 }
