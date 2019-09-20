@@ -174,7 +174,7 @@ fn main() -> std::io::Result<()> {
 
     // println!("init handshake...");
     match socket.send(&mut [1]) {
-        Ok(n) => {
+        Ok(_n) => {
             // println!("HS:: send:: {} bytes", n);
         }
         Err(e) => {
@@ -182,7 +182,7 @@ fn main() -> std::io::Result<()> {
         }
     }
     match socket.recv(&mut [1]) {
-        Ok(n) => {
+        Ok(_n) => {
             // println!("HS:: recv :: {} bytes", n);
         }
         Err(e) => {
