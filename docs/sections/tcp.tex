@@ -5,6 +5,6 @@ We hypothesized that the latency will proportionally increase with the packet si
 
 One of the issues encountered while measuring TCP latency was that when using the read and write function calls of the Rust language on TCP stream, the functions were reading and writing random bytes of data which were different than the expected values. This caused discrepancies in the read and write sequence of the server and the client model. To remedy this problem, we switched to different function calls, read_all and write_all, which helped synchronize the flow of data between the client and the server.
 
---results
+%results
 
 
