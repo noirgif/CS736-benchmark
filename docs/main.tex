@@ -1,12 +1,12 @@
 \documentclass[10pt]{article}
 
 \linespread{1.5}
-\usepackage{acmart}
 \usepackage{libertine, graphicx}
-\usepackage{natbib}
+\usepackage[square,numbers]{natbib}
 \usepackage{inconsolata}
 \usepackage{hyperref}
 
+\bibliographystyle{acm}
 
 \begin{document}
 \title{Bandwidth and Latency Measurement on Inter-Process Communications}
@@ -16,7 +16,7 @@
 \maketitle
 
 \begin{abstract}
-    There are multiple ways to do inter-process communications(IPC). For example, pipe is often used to communicate between processes, whereas TCP and UDP can also be used to communicate both locally and remotely. Due to their differences in design, they tend to have different latencies and througputs. Experiments to show
+    There are multiple ways to do inter-process communications(IPC). For example, pipe is often used to communicate between processes, whereas TCP and UDP can also be used to communicate both locally and remotely. Due to their differences in design, they tend to have different latencies and througputs. Our experiments showed that the packet size is an important factor for both the latency and the througput of IPC.
 \end{abstract}
 
 \input{sections/resolution}
@@ -27,7 +27,6 @@
 \input{sections/eval}
 \input{sections/conclusion}
 
-\bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
     
 \end{document}
