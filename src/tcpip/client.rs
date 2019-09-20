@@ -23,9 +23,9 @@ fn measure_latency(stream: &mut TcpStream) -> std::io::Result<()> {
 // Measure the throughput
 fn measure_throughput(stream: &mut TcpStream) -> std::io::Result<()> {
     // let mut array: [i32; 3] = [0; 3];
-    const MAX_MSG: usize = 1 << 26;
+    const TOTAL_RECV: usize = 1 << 30;
     // The receiving buffer
-    let mut in_buf = vec![1u8; MAX_MSG];
+    let mut in_buf = vec![1u8; TOTAL_RECV];
     // The replying message(ACK)
     let out_buf = [1u8; 1];
 
@@ -33,10 +33,10 @@ fn measure_throughput(stream: &mut TcpStream) -> std::io::Result<()> {
         4usize, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288,
     ];
 
-    for _i in 0..(10 * NUM_LOOP) {
+    for _i in 0..sizes.len() {
         // let mut n = 0;
-        let read_size = sizes[_i / NUM_LOOP];
-        stream.read_exact(&mut in_buf[0..read_size])?;
+        // let read_size = sizes[_i / NUM_LOOP];
+        stream.read_exact(&mut in_buf)?;
         stream.write_all(&out_buf)?;
     }
     Ok(())
