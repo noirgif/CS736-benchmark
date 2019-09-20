@@ -115,9 +115,9 @@ fn measure_latency() -> std::io::Result<()> {
         }
     }
 
-    let mut f = File::create("pipe_latency")?;
+    // let mut f = File::create("pipe_latency")?;
     for (msg_size, lat) in results {
-        f.write_fmt(format_args!("{} {:.3}\n", msg_size, lat as f64 / 2. / TSC_FREQ))?;
+        println!("{} {:.3}", msg_size, lat as f64 / 2. / TSC_FREQ);
     }
     Ok(())
 }
@@ -206,26 +206,23 @@ fn measure_throughput() -> std::io::Result<()> {
         std::process::exit(0);
     }
 
-    let mut f = File::create("pipe_throughput")?;
+    // let mut f = File::create("pipe_throughput")?;
     for (&msg_size, &time) in sizes.iter().zip(results.iter()) {
-        write!(
-            f,
-            "{} {:.3}\n",
+        println!(
+            "{} {:.3}",
             msg_size,
             TOTAL_SENT as f64 / (1024 * 1024) as f64 / time
-        )?;
+        );
     }
     Ok(())
 }
 
 fn main() -> std::io::Result<()> {
     let args: std::vec::Vec<String> = std::env::args().collect();
-    if &args[1] == "lat" {
-        measure_latency()?;
-    } else if &args[1] == "tput" {
-        measure_throughput()?;
-    } else {
-        eprintln!("{} [lat|tput]", &args[0]);
+    match &args[1].chars().nth(0).unwrap() {
+        'l' => measure_latency()?,
+        't' => measure_throughput()?,
+        _ => eprintln!("{} [latency|throughput]", &args[0]),
     }
     Ok(())
 }

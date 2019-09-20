@@ -154,11 +154,19 @@ pub fn measure_throughput(mut _socket: UdpSocket, num_repeat: u64) -> std::io::R
     Ok(())
 }
 
+fn print_err_msg(args0: &str) -> ! {
+    println!("{} (latency|throughput) <loop_times> [SELF_ADDRESS:PORT] [OTHER_ADDRESS:PORT]", args0);
+    std::process::exit(1);
+}
+
 fn main() -> std::io::Result<()> {
     // println!("\nPlease make sure server is started first!");
 
     // command line args
     let args: Vec<String> = env::args().collect();
+    if args.len() < 5 {
+        print_err_msg(&args[0]);
+    }
     let test_type = &args[1];
     let num_repeat = match (args[2]).parse::<u64>() { Ok(n) => n, Err(_e) => 100};
     let self_addr = &args[3];
@@ -196,10 +204,10 @@ fn main() -> std::io::Result<()> {
     socket.set_read_timeout(Some(TIMEOUT))?;
     socket.set_write_timeout(Some(TIMEOUT))?;
 
-    if test_type == "lat" {
-        measure_latency(socket, num_repeat)?;
-    } else {
-        measure_throughput(socket, num_repeat)?;
+    match test_type.chars().nth(0).unwrap() {
+        'l' => measure_latency(socket, num_repeat)?,
+        't' => measure_throughput(socket, num_repeat)?,
+        _ => print_err_msg(&args[0])
     }
     // println!("\nDone!\n");
     // println!();

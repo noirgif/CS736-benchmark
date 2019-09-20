@@ -1,11 +1,11 @@
 build:
 	cargo build --release --bin us --bin uc --bin tis --bin tic --bin clock_res --bin kernelcall --bin measure_pipe
 
-test: clock_res systemcall measure_pipe tcpip_lat tcpip_tput udp_lat udp_tput
+test: clock_res systemcall pipe_lat pipe_tput tcpip_lat tcpip_tput udp_lat udp_tput
 
 .PHONY: clock_res
 clock_res: build
-	cargo run --release --bin clock_res
+	cargo run --bin clock_res
 
 .PHONY: systemcall
 systemcall: build
@@ -31,7 +31,10 @@ udp_tput: build
 	cargo run --release --bin us tput 100000 127.0.0.1:8088 127.0.0.1:8089 &
 	sleep 1 && cargo run --release --bin uc tput 100000 127.0.0.1:8089 127.0.0.1:8088
 
-.PHONY: measure_pipe
-measure_pipe: build
-	mkdir -p data && cd data && cargo run --release --bin measure_pipe lat && \
-		cargo run --release --bin measure_pipe tput
+.PHONY: pipe_tput
+pipe_tput: build
+	cargo run --release --bin measure_pipe tput
+		
+.PHONY: pipe_lat
+pipe_lat:
+	cargo run --release --bin measure_pipe tput

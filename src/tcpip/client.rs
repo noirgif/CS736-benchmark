@@ -57,9 +57,10 @@ fn main() -> std::io::Result<()> {
         print_err_msg(&args[0]);
     }
 
-    match args[1].as_ref() {
-        "latency" => is_latency = true,
-        "throughput" => is_latency = false,
+    // determine to measure latency, or throughput, or neither
+    match &args[1].chars().nth(0).unwrap() {
+        'l' => is_latency = true,
+        't' => is_latency = false,
         _ => print_err_msg(&args[0]),
     }
 

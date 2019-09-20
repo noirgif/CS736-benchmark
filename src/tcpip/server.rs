@@ -86,13 +86,14 @@ fn main() -> std::io::Result<()> {
     // Whether latency is measured, if false, the throughput is measured
     let is_latency: bool;
 
-    if args.len() < 2 {
+    if args.len() < 3 {
         print_err_msg(&args[0]);
     }
 
-    match args[1].as_ref() {
-        "latency" => is_latency = true,
-        "throughput" => is_latency = false,
+    // determine to measure latency, or throughput, or neither
+    match &args[1].chars().nth(0).unwrap() {
+        'l' => is_latency = true,
+        't' => is_latency = false,
         _ => print_err_msg(&args[0]),
     }
 

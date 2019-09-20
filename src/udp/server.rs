@@ -43,7 +43,7 @@ pub fn measure_latency(mut _socket: UdpSocket, num_repeat:u64) -> std::io::Resul
     Ok(())
 }
 
-pub fn measure_throughput(mut _socket: UdpSocket) {
+pub fn measure_throughput(mut _socket: UdpSocket) -> std::io::Result<()>  {
     // let mut array: [i32; 3] = [0; 3];
     //const MAX_MSG: usize = 1 << 26;
     let mut in_buf = vec![1u8; MTU];
@@ -64,7 +64,7 @@ pub fn measure_throughput(mut _socket: UdpSocket) {
                     total_received += received as u64;
                 }
                 Err(e) => {
-                    println!("recv function failed: {:?}", e);
+                    eprintln!("recv function failed: {:?}", e);
                 }
             }
         }
@@ -73,7 +73,7 @@ pub fn measure_throughput(mut _socket: UdpSocket) {
         match _socket.send(&out_buf) {
             Ok(_sent) => {}
             Err(err) => {
-                println!("{:?}", err);
+                eprintln!("{:?}", err);
             }
         };
 
@@ -82,6 +82,12 @@ pub fn measure_throughput(mut _socket: UdpSocket) {
         total_received = 0;
         in_buf[1] = 1u8;
     }
+    Ok(())
+}
+
+fn print_err_msg(args0: &str) -> ! {
+    println!("{} (latency|throughput) <loop_times> [SELF_ADDRESS:PORT] [OTHER_ADDRESS:PORT]", args0);
+    std::process::exit(1);
 }
 
 fn main() -> std::io::Result<()> {
@@ -124,10 +130,10 @@ fn main() -> std::io::Result<()> {
     socket.set_read_timeout(Some(TIMEOUT))?;
     socket.set_write_timeout(Some(TIMEOUT))?;
 
-    if test_type == "lat" {
-        measure_latency(socket, num_repeat)?;
-    } else {
-        measure_throughput(socket);
+    match test_type.chars().nth(0).unwrap() {
+        'l' => measure_latency(socket, num_repeat)?,
+        't' => measure_throughput(socket)?,
+        _ => print_err_msg(&args[0])
     }
     // println!("\nDone!\n");
 
