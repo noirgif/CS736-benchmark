@@ -126,7 +126,7 @@ fn measure_throughput() -> std::io::Result<()> {
 
     // the time cost, in sec
     let mut results = vec![];
-    const MAX_MSG: usize = 1 << 30;
+    const MAX_MSG: usize = 1 << 23;
 
     let pid = unsafe { fork() };
     let sizes = [4, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288];
@@ -140,11 +140,15 @@ fn measure_throughput() -> std::io::Result<()> {
                 gettime!(
                     (unsafe {
                         let mut n = 0usize;
-                        while n < msg_size {
+                        while n < MAX_MSG {
                             let result = write(
                                 pipe1[1],
                                 (buf.as_ptr() as *const c_void).offset(n as isize),
-                                msg_size - n,
+                                if n + msg_size > MAX_MSG {
+                                    MAX_MSG - n
+                                } else {
+                                    msg_size
+                                },
                             );
                             if result > 0 {
                                 n += result as usize;
