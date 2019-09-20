@@ -68,9 +68,9 @@ fn measure_latency() -> std::io::Result<()> {
             );
             // because the child process is in an infinite loop, simply kill it.
             // edit no need to kill
-            unsafe {
+            // unsafe {
                 // kill(pid, SIGKILL);
-            }
+            // }
             results.push((msg_size, lat));
         } else {
             // Child process
@@ -113,8 +113,8 @@ fn measure_latency() -> std::io::Result<()> {
     }
 
     let mut f = File::create("pipe_latency")?;
-    for (i, j) in results {
-        f.write_fmt(format_args!("{} {}\n", i, j))?;
+    for (msg_size, lat) in results {
+        f.write_fmt(format_args!("{} {}\n", msg_size, lat as f64 / 2.))?;
     }
     Ok(())
 }

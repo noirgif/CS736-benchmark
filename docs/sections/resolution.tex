@@ -7,5 +7,3 @@ The resolution is the smallest possible increase of the clock. In order to measu
 As per the POSIX manual\cite{posix_clock_gettime}, the function \texttt{gettimeofday} is obsolete, and the switch to \texttt{clock\_gettime} is recommended, so we used \texttt{clock\_gettime} instead. along with \texttt{clock\_gettime}, function \texttt{clock\_getres} is provided for user to query the resolution of time. As we will demonstrated, it produces the same result as ours.
 
 Also, the x86 CPU provides \texttt{rdtscp} instruction to give the CPU timestamp, in terms of TSC(Time Stamp Counter) cycles. As Sergiu and Terry pointed out, in order to use TSC as a reliable clocksource, it must be stable and have a constant rate, which can be examined using \texttt{\textbackslash{}proc\textbackslash{}cpuinfo}\cite{constant_tsc}.
-
-It is worth noting that accuracy is also a key factor to consider, which we will leave to the discussion.
