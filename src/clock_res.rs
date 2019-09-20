@@ -16,18 +16,18 @@ fn rdtscp_resolution() {
     const freq : f64 = 3.2;
     let mut res : i64 = 0;
 
+    // Ordered set
     let mut set = BTreeSet::new();
 
     // dummy instructions
-    for i in 0..5000 {
+    for i in 0..100000 {
         set.insert(rdtscp!({ unsafe {
             asm!("nop" :::: "volatile");
-            asm!("nop" :::: "volatile");
-            asm!("nop" :::: "volatile");
+            // asm!("nop" :::: "volatile");
         } }, 1));
     }
 
-    for i in 0..5000 {
+    for i in 0..100000 {
         set.insert(rdtscp!({ unsafe {} }, 1));
     }
 
