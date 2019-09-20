@@ -1,1 +1,12 @@
 \section{UDP}
+UDP 
+Similar to TCP, UDP also uses sockets for communication. However, unlike TCP, UDP doesn't provide reliability mechanism or any guarantees on the transmission of the data. We hypothesized that similar to UDP, the TCP latency should increase as packet sizes increase, and the throughput will also increase as the packet sizes are increased.
+
+As UDP didn't have the builtin mechanism to guarantee whether the data were received at the other end or not, it caused issues while performing the latency and throughput tests in various stages. Unlike TCP, there is no concept of server and client. Instead, we have a port number associated with each process and both of the processes send and receive using the port number of the other processes. When the sequence of read and write function calls were inconsistent the program would hang crash after a while.  
+
+results --
+
+Another error we encountered while write the benchmark was associated with how Rust's arrays work. A stack overflow error was received while running the throughput test. So, it was natural to check the function calls and the call stack to debug the issue. However, it was detected that the stack overflow occurred due to the allocation of the arrays on the stack. The array which was used to test the throughput was larger than 1 GiB. Even though, it was statically declared, it passed the compilation and only returned as a runtime error. To remedy this problem we allocated the array on heap using the Rust language's Vector type.
+
+
+
