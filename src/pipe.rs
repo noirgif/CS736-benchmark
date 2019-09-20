@@ -8,6 +8,10 @@ use std::io::prelude::*;
 #[macro_use]
 mod measure;
 
+// times to loop
+const LOOP_NUM: usize = 100000;
+const LOOP_NUM_TPUT: usize = 5;
+
 fn measure_latency() -> std::io::Result<()> {
     let pipe1 = &mut [0 as c_int, 0 as c_int];
     let pipe2 = &mut [0 as c_int, 0 as c_int];
@@ -16,8 +20,6 @@ fn measure_latency() -> std::io::Result<()> {
         panic!("Error creating pipe");
     }
 
-    // times to loop
-    const LOOP_NUM: usize = 1;
 
     let mut results = vec![];
     let sizes = [
@@ -71,8 +73,8 @@ fn measure_latency() -> std::io::Result<()> {
             }
             results.push((msg_size, lat));
         } else {
+            // Child process
             for _i in 0..LOOP_NUM {
-                // child process
                 let mut n = 0usize;
                 // receiving the message
                 while n < msg_size {
@@ -127,16 +129,16 @@ fn measure_throughput() -> std::io::Result<()> {
 
     // the time cost, in sec
     let mut results = vec![];
+    // the buffer is 1GiB
     const TOTAL_SENT: usize = 1 << 30;
-
+    // packet sizes
     let sizes = [4, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 524288];
+    let mut buf = vec![1u8; 524288];
+    let pid = unsafe { fork() };
 
-    for &msg_size in sizes.iter() {
-        // the buffer 1GiB
-        let mut buf = String::with_capacity(TOTAL_SENT);
-        let pid = unsafe { fork() };
-        if pid != 0 {
-            // parent process
+    if pid != 0 {
+        // parent process
+        for &msg_size in sizes.iter() {
             results.push(
                 gettime!(
                     (unsafe {
@@ -144,11 +146,11 @@ fn measure_throughput() -> std::io::Result<()> {
                         while n < TOTAL_SENT {
                             let result = write(
                                 pipe1[1],
-                                (buf.as_ptr() as *const c_void).offset(n as isize),
-                                if n + msg_size > TOTAL_SENT {
-                                    TOTAL_SENT - n
-                                } else {
+                                buf.as_ptr() as *const c_void,
+                                if n + msg_size <= TOTAL_SENT {
                                     msg_size
+                                } else {
+                                    TOTAL_SENT - n
                                 },
                             );
                             if result > 0 {
@@ -164,17 +166,21 @@ fn measure_throughput() -> std::io::Result<()> {
                             panic!("Error when reading from pipe!");
                         }
                     }),
-                    1
+                   LOOP_NUM_TPUT 
                 ) as f64
                     / 1e9,
             );
-            // because the child process is in an infinite loop, simply kill it.
-            // print!("\rresults {:?}", results);
-            unsafe {
-                kill(pid, SIGKILL);
-            }
-        } else {
-            // child process
+        }
+        // because the child process is in an infinite loop, simply kill it.
+        // print!("\rresults {:?}", results);
+        // std::io::stdout().flush()?;
+        unsafe {
+            kill(pid, SIGKILL);
+        }
+    } else {
+        // child process
+        for i in 0..(LOOP_NUM_TPUT * sizes.len()) {
+            let msg_size = sizes[i / LOOP_NUM_TPUT];
             unsafe {
                 // read TOTAL_SENT bytes
                 let mut n = 0usize;
@@ -182,8 +188,8 @@ fn measure_throughput() -> std::io::Result<()> {
                 while n < TOTAL_SENT {
                     let result = read(
                         pipe1[0],
-                        (buf.as_mut_ptr() as *mut c_void).offset(n as isize),
-                        TOTAL_SENT - n,
+                        buf.as_mut_ptr() as *mut c_void,
+                        msg_size,
                     );
                     if result > 0 {
                         n += result as usize;
@@ -197,17 +203,26 @@ fn measure_throughput() -> std::io::Result<()> {
                 }
             }
         }
+        std::process::exit(0);
     }
 
     let mut f = File::create("pipe_throughput")?;
     for (&msg_size, &time) in sizes.iter().zip(results.iter()) {
-        write!(f, "{} {:.3}\n", msg_size, TOTAL_SENT as f64 / time)?;
+        write!(f, "{} {:.3}\n", msg_size, TOTAL_SENT as f64 / (1024 * 1024) as f64 / time)?;
     }
     Ok(())
 }
 
 fn main() -> std::io::Result<()> {
-    measure_latency()?;
-    measure_throughput()?;
+    let args : std::vec::Vec<String> = std::env::args().collect();
+    if &args[1] == "lat" {
+        measure_latency()?;
+    }
+    else if &args[1] == "tput" {
+        measure_throughput()?;
+    }
+    else {
+        eprintln!("{} [lat|tput]", &args[0]);
+    }
     Ok(())
 }

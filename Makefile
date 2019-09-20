@@ -33,4 +33,5 @@ udp_tput: build
 
 .PHONY: measure_pipe
 measure_pipe: build
-	mkdir -p data && cd data && cargo run --release --bin measure_pipe
+	mkdir -p data && cd data && cargo run --release --bin measure_pipe lat && \
+		cargo run --release --bin measure_pipe tput
