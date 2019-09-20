@@ -89,11 +89,11 @@ fn gettime_resolution() {
     }
     
 
-    println!("{}", min_diff);
+    println!("clock_gettime {}", min_diff);
 
     let mut res = timespec {tv_sec: 0, tv_nsec: 0};
     unsafe {clock_getres(CLOCK_REALTIME, &mut res); }
-    println!("{}", res.tv_nsec);
+    println!("clock_getres {}", res.tv_nsec);
 }
 
 
