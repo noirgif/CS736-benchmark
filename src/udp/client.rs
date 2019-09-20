@@ -10,7 +10,7 @@ use std::time::Duration;
 mod measure;
 
 const MTU: usize = 65000;
-const CPU_GHZ: f64 = 3.5e9;
+const TSC_FREQ: f64 = 3.2e9;
 
 pub fn measure_latency(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Result<()> {
     let mut in_buf = [1u8; 1 << 19];
@@ -53,7 +53,7 @@ pub fn measure_latency(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Resu
         println!(
             "{:10}\t\t{}",
             msg_size,
-            lat as f64 / (2.0 * CPU_GHZ) * 1.0e+9
+            lat as f64 / (2.0 * TSC_FREQ) * 1.0e+9
         );
         //println!("{}", _socket.nodelay().unwrap());
     }
@@ -146,7 +146,7 @@ pub fn measure_throughput(mut _socket: UdpSocket, num_repeat: u64) -> std::io::R
         println!(
             "{:7}\t\t{}",
             msg_size,
-            tput / (1024 * 1024) as f64 * CPU_GHZ
+            tput / (1024 * 1024) as f64 * TSC_FREQ
         );
         //println!("{}", _socket.nodelay().unwrap());
     }
