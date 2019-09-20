@@ -1,3 +1,2 @@
 \section{Conclusion}
-
-We measured IPC performance, both locally and remotedly. We found out that the system call has an non-negligible impact on the latency of small packets, and the buffer size could significantly limit the throughput.
+We measured IPC performance, both locally and remotedly. We found out that the system call has an non-negligible impact on the latency of small packets, and we discovered that pipe could actually perform lower throughput than local TCP/IP and UDP, which hints that buffer size might also be the contributing factor.

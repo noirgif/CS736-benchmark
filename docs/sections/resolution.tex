@@ -1,11 +1,9 @@
 \section{Clock Resolution}
 
-To begin with, how can we measure the time? We need clocks to do so. The Linux operating system, along with the underlying hardware, provides multiple methods for such purpose. But how can we choose one? One of the criteria is how precise they can be. And resolution is an important standard for the precision.
+To begin with, how can we measure the time? We need clocks. The Linux operating system, along with the x86-64 CPU, provides multiple methods for such purpose. But how can we choose one? One of the criteria is how precise they can be. And the resolution is an important standard for precision.
 
-The resolution is the smallest possible increase of the clock. In order to measure the resolution, we tried to create minimal possible differences between two time measurements. We create such difference by inserting an line of assembly \texttt{nop} into the code. 
+The resolution is the smallest possible increase of the clock. In order to measure the resolution, we tried to create minimal possible differences between two-time measurements. We create such difference by inserting a line of assembly \texttt{nop} into the code. 
 
-As per the POSIX manual\cite{posix-clock-gettime}, the function \texttt{gettimeofday} is obsolete, and the switch to \texttt{clock\_gettime} is recommended, so we used \texttt{clock\_gettime} instead. along with \texttt{clock\_gettime}, function \texttt{clock\_getres} is provided for user to query the resolution of time.
+As per the POSIX manual\cite{posix-clock-gettime}, the function \texttt{gettimeofday} is obsolete, and the switch to \texttt{clock\_gettime} is recommended, so we used \texttt{clock\_gettime} instead, along with \texttt{clock\_gettime}, function \texttt{clock\_getres} is provided for user to query the resolution of time. As we will demonstrated, it produces the same result as ours.
 
-Also, the x86 CPU provides \texttt{rdtscp} instruction to give the CPU timestamp, in terms of TSC(Time Stamp Counter) cycles. As Sergiu and Terry pointed out, in order to use TSC as a reliable clocksource, it must be stable and have a constant rate, which can be examined using \texttt{\textbackslash{}proc\textbackslash{}cpuinfo}\cite{constant_tsc}.
-
-Because the timing instruction itself takes time, even with two subsequent calls. So in order to get the minimal possible differences, we time some pieces of code repeatedly, to find out the minimal differences between the results.
+Also, the x86 CPU provides \texttt{rdtscp} instruction to give the CPU timestamp, in terms of TSC(Time Stamp Counter) cycles. As Sergiu and Terry pointed out, to use TSC as a reliable clock source, it must be stable and have a constant rate, which can be examined using \texttt{\textbackslash{}proc\textbackslash{}cpuinfo}\cite{constant_tsc}.

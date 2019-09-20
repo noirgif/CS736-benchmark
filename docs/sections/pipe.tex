@@ -1,8 +1,8 @@
 \section{Pipe}
 % Discuss how we measure pipe
 
-We measured the performance of pipes in terms of latency and throughput. In order for a pipe to be used, we first create a pair of pipes, and then fork the process to let them talk to each other.
+We measured the performance of pipes in terms of latency and throughput. For a pipe to be used, we first create a pair of pipes and then fork the process to allow inter-process communication.
 
-We tried to measure the impact of how the bytes written each time impacts the latency and the throughput. Since the pipe does not transmit messages in the form of a packet, we simulate it by initiating \texttt{read} and \texttt{write} each time with the desired size.
+We tried to measure the impact of how the number of bytes transmitted each time impacts the latency and throughput. Since the pipe does not transmit messages in the form of a packet, we simulate it by initiating \texttt{read} and \texttt{write} each time with a fixed \texttt{count} parameter.
 
-We measure the latency in terms of RTT. And repeat the experiment 100000 times to get the minimum latency as the final result. For latency, we make one process send 1GiB data, and the other process, on receiving all data, returns a message to the sender, and the time of the whole process is used to calculate the throughput. We apply the same method to the measurements on TCP/IP and UDP.
+We measure the latency in terms of RTT. And repeat the experiment 100,000 times to get the minimum latency as the final result. For latency, we make one process send 1GiB data, and the other process, on receiving all data, return a message to the sender, and use the time of the whole process to calculate the throughput. We apply the same method to the measurements on TCP/IP and UDP.

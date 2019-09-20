@@ -144,7 +144,7 @@ fn measure_throughput() -> std::io::Result<()> {
         for &msg_size in sizes.iter() {
             results.push(
                 rdtscp!(
-                    (unsafe {
+                    {unsafe {
                         let mut n = 0usize;
                         while n < TOTAL_SENT {
                             let result = write(
@@ -168,7 +168,7 @@ fn measure_throughput() -> std::io::Result<()> {
                         if result <= 0 {
                             panic!("Error when reading from pipe!");
                         }
-                    }),
+                    }},
                     LOOP_NUM_TPUT
                 ) as f64
                     / TSC_FREQ

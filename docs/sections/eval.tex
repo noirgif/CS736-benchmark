@@ -17,6 +17,10 @@ We measured trivial syscalls \texttt{getpid} and \texttt{getuid}, \texttt{getpid
 
 We measured IPC performance on a single machine, and between two machines in the same LAN.
 
+The latencies of all IPCs are stable at first, and grow up after a threshold, which means the bottleneck are changed during the process -- when packets are small a fixed time cost in the same order as system calls is dominant, but as they become larger, the transmission cost starts to take dominance.
+
+On the other side, the throughput becomes larger as the packet size increases, but usually stops increasing at some point.
+
 The measurement with pipe shows something interesting: the bandwidth first increases with the packet size, but after reaching around 16KiB packet size, the performance starts to deteriorate as the packet size grows up. We hypothesized the default 64KiB pipe buffer in Linux is the reason, but due to the limitation of the instructional machine, we cannot modify the pipe buffer size to verify such hypothesis.
 
 \begin{figure}[!ht]
