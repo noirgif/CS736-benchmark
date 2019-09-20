@@ -51,7 +51,7 @@ pub fn measure_latency(mut _socket: UdpSocket, num_repeat: u64) -> std::io::Resu
 
         //println!("{:?}", buffer);
         println!(
-            "{:10}\t\t{}",
+            "{:10}\t\t{:.3}",
             msg_size,
             lat as f64 / (2.0 * TSC_FREQ) * 1.0e+9
         );
@@ -144,7 +144,7 @@ pub fn measure_throughput(mut _socket: UdpSocket, num_repeat: u64) -> std::io::R
 
         //println!("{:?}", buffer);
         println!(
-            "{:7}\t\t{}",
+            "{:7}\t\t{:.3}",
             msg_size,
             tput / (1024 * 1024) as f64 * TSC_FREQ
         );

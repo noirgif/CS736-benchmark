@@ -196,7 +196,7 @@ fn measure_throughput() -> std::io::Result<()> {
 
     let mut f = File::create("pipe_throughput")?;
     for (&msg_size, &time) in sizes.iter().zip(results.iter()) {
-        write!(f, "{} {}\n", msg_size, MAX_MSG as f64 / time)?;
+        write!(f, "{} {:.3}\n", msg_size, MAX_MSG as f64 / time)?;
     }
     Ok(())
 }
