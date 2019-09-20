@@ -17,7 +17,7 @@ fn main() {
         { unsafe { asm!("syscall" : "={rax}"(pid) : "{rax}"(39) :: "intel", "volatile") } },
         100000
     );
-    println!("getpid {}", cyc_getpid as f64 / TSC_FREQ);
+    println!("getpid {:.3}", cyc_getpid as f64 / TSC_FREQ);
 
     // println!("{}", pid);
 
@@ -26,7 +26,7 @@ fn main() {
         { unsafe { asm!("syscall" : "={rax}"(uid) : "{rax}"(102) :: "intel", "volatile") } },
         100000
     );
-    println!("getuid {}", cyc_getuid as f64 / TSC_FREQ);
+    println!("getuid {:.3}", cyc_getuid as f64 / TSC_FREQ);
 
     //println!("{}", uid);
 }

@@ -11,9 +11,6 @@ use std::collections::BTreeSet;
 const TSC_FREQ : f64 = 3.2;
 
 fn rdtscp_resolution() {
-
-    // TSC Freq, about the same as CPU freq
-    const freq : f64 = 3.2;
     let mut res : i64 = 0;
 
     let mut set = BTreeSet::new();
@@ -47,7 +44,7 @@ fn rdtscp_resolution() {
     }
     
 
-    println!("rdtscp {}", min_diff as f64 / TSC_FREQ);
+    println!("rdtscp {:.3}", min_diff as f64 / TSC_FREQ);
 }
 
 
