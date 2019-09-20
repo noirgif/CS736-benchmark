@@ -71,7 +71,7 @@ fn measure_throughput(mut _socket: TcpStream) -> std::io::Result<()> {
     
     // print the speed for different packets, in MB/s
     for &(msg_size, lat) in results.iter() {
-        println!("{} {}", msg_size, msg_size as f64 / (1024. * 1024.) / lat * 1e9);
+        println!("{} {}", msg_size, TOTAL_SENT as f64 / (1024. * 1024.) / lat * 1e9);
     }
     Ok(())
 }
